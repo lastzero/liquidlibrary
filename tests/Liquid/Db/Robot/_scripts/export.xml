@@ -1,0 +1,296 @@
+<dbConvert>
+	<locale></locale>
+	<charset>ISO-8859-15</charset>
+	<source>
+		<host>localhost</host>
+		<database></database>
+		<username></username>
+		<password></password>
+		<prefix></prefix>
+		<type>PDO_MYSQL</type>
+	</source>
+	<destination>
+		<prefix></prefix>
+		<host>localhost</host>
+		<database></database>
+		<username></username>
+		<password></password>
+		<prefix>_</prefix>
+		<type>PDO_MYSQL</type>
+	</destination>
+	<export>
+		<host>localhost</host>
+		<database></database>
+		<username></username>
+		<password></password>
+		<prefix></prefix>
+		<type>PDO_MYSQL</type>
+	</export>
+<tables>
+		<table dst="$practiceAreas" src="$practiceAreas">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="paId" type="int NOT NULL" src="paId" srctype="int NOT NULL" />
+			<col dst="parentId" type="int NOT NULL" src="parentId" srctype="int NOT NULL" />
+			<col dst="paLawyer" type="int NULL" src="paLawyer" srctype="int NULL" />
+			<col dst="paTax" type="int NULL" src="paTax" srctype="int NULL" />
+			<col dst="paNotary" type="int NULL" src="paNotary" srctype="int NULL" />
+			<col dst="paEmployee" type="int NULL" src="paEmployee" srctype="int NULL" />
+			<col dst="rgId" type="int NULL" src="rgId" srctype="int NULL" />
+			<col dst="pagId" type="int NULL" src="pagId" srctype="int NULL" />
+			<col dst="paType" type="int NOT NULL" src="paType" srctype="int NOT NULL" />
+			<col dst="paGroupId" type="int NULL" src="paGroupId" srctype="int NULL" />
+			<sql>INSERT INTO inet_practiceAreas SELECT paId, parentId, lawyerStatus, taxStatus, notaryStatus, empStatus, rgId, pagId, paType, paGroupId FROM mdb_practiceAreas a WHERE inetStatus = 1 ORDER BY paId</sql>
+		</table>
+		<table dst="$practiceAreaNames" src="$practiceAreaNames">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="paId" type="int NOT NULL" src="paId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="paShortName" type="varchar(50) CHARACTER SET utf8 NULL" src="paShortName" srctype="nvarchar(50) NULL" />
+			<col dst="paName" type="varchar(250) CHARACTER SET utf8 NULL" src="paName" srctype="nvarchar(250) NULL" />
+			<col dst="paDescription" type="text CHARACTER SET utf8 NULL" src="paDescription" srctype="ntext NULL" />
+			<sql>INSERT INTO inet_practiceAreaNames SELECT a.paId, a.locale, a.paShortName, a.paName, a.paDescription FROM mdb_practiceAreaNames a, mdb_practiceAreas b WHERE a.paId = b.paId AND b.inetStatus = 1 ORDER BY paId</sql>
+		</table>
+		<table dst="$practiceAreaGroups" src="$practiceAreaGroups">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="paGroupId" type="int NOT NULL" src="paGroupId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="paGroupName" type="varchar(250) CHARACTER SET utf8 NULL" src="paGroupName" srctype="nvarchar(250) NULL" />
+			<col dst="paGroupDescription" type="text CHARACTER SET utf8 NULL" src="paGroupDescription" srctype="ntext NULL" />
+			<sql>INSERT INTO inet_practiceAreaGroups SELECT paGroupId, locale, paGroupName, paGroupDescription FROM mdb_practiceAreaGroups a ORDER BY rowId</sql>
+		</table>
+		<table dst="$userPracticeAreas" src="$userPracticeAreas">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="paId" type="int NOT NULL" src="paId" srctype="int NOT NULL" />
+			<col dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<col dst="countryId" type="int NULL" src="countryId" srctype="int NULL" />
+			<col dst="paShare" type="int NULL" src="paShare" srctype="int NULL" />
+			<col dst="paOrder" type="int NULL" src="paOrder" srctype="int NULL" />
+			<col dst="paLevel" type="int NULL" src="paLevel" srctype="int NULL" />
+			<sql>INSERT INTO inet_userPracticeAreas SELECT DISTINCT a.paId, a.userId, a.countryId, a.paShare, a.paOrder, a.paLevel FROM mdb_userPracticeAreas a, mdb_users b, mdb_practiceAreas c WHERE c.paId = a.paId AND c.inetStatus = 1 AND a.paInternet = 1 AND a.userId = b.userId ORDER BY a.userId</sql>
+		</table>
+		<table dst="$locations" src="$locations">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="locId" type="int NOT NULL" src="locId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="sortOrder" type="int NULL" src="sortOrder" srctype="int NULL" />
+			<col dst="locName" type="varchar(200) CHARACTER SET utf8 NULL" src="locName" srctype="nvarchar(200) NULL" />
+			<col dst="locAddress" type="varchar(200) CHARACTER SET utf8 NULL" src="locAddress" srctype="nvarchar(200) NULL" />
+			<col dst="locAddress2" type="varchar(200) CHARACTER SET utf8 NULL" src="locAddress2" srctype="nvarchar(200) NULL" />
+			<col dst="locZip" type="varchar(20) CHARACTER SET utf8 NULL" src="locZip" srctype="nvarchar(20) NULL" />
+			<col dst="locCity" type="varchar(200) CHARACTER SET utf8 NULL" src="locCity" srctype="nvarchar(200) NULL" />
+			<col dst="locState" type="varchar(200) CHARACTER SET utf8 NULL" src="locState" srctype="varchar(200) NULL" />
+			<col dst="locCountryId" type="int NULL" src="locCountryId" srctype="int NULL" />
+			<col dst="locUrl" type="varchar(200) CHARACTER SET utf8 NULL" src="locUrl" srctype="varchar(200) NULL" />
+			<col dst="locDisplayPhone" type="varchar(100) CHARACTER SET utf8 NULL" src="locDisplayPhone" srctype="nvarchar(100) NULL" />
+			<col dst="locDisplayFax" type="varchar(100) CHARACTER SET utf8 NULL" src="locDisplayFax" srctype="nvarchar(100) NULL" />
+			<col dst="locDisplayEmail" type="varchar(100) CHARACTER SET utf8 NULL" src="locDisplayEmail" srctype="varchar(100) NULL" />
+			<col dst="locPhonePrefix" type="varchar(40) CHARACTER SET utf8 NULL" src="locPhonePrefix" srctype="nvarchar(40) NULL" />
+			<col dst="locPhoneExt" type="varchar(40) CHARACTER SET utf8 NULL" src="locPhoneExt" srctype="nvarchar(40) NULL" />
+			<col dst="locFaxPrefix" type="varchar(40) CHARACTER SET utf8 NULL" src="locFaxPrefix" srctype="nvarchar(40) NULL" />
+			<col dst="locFaxExt" type="varchar(40) CHARACTER SET utf8 NULL" src="locFaxExt" srctype="nvarchar(40) NULL" />
+			<col dst="locEmail" type="varchar(200) CHARACTER SET utf8 NULL" src="locEmail" srctype="varchar(100) NULL" />
+			<col dst="locType" type="int NULL" src="locType" srctype="int NULL" />
+			<col dst="directionsAirport" type="text CHARACTER SET utf8 NULL" src="directionsAirport" srctype="ntext NULL" />
+			<col dst="directionsCar" type="text CHARACTER SET utf8 NULL" src="directionsCar" srctype="ntext NULL" />
+			<col dst="directionsTrain" type="text CHARACTER SET utf8 NULL" src="directionsTrain" srctype="ntext NULL" />
+			<sql>SET CONCAT_NULL_YIELDS_NULL OFF</sql>
+			<sql>DELETE FROM inet_locations</sql>
+			<sql>INSERT INTO inet_locations SELECT a.locId, locale, 1, comName, address, address2, zip, city, state, countryId, homepage, phone, fax, email, phonePrefix, NULL, phonePrefix, NULL, email, locationType, directionsAirport, directionsCar, directionsTrain FROM mdb_locations a, mdb_companyLocations b, mdb_companies c WHERE a.published = 1 AND a.locId = b.locId AND b.comId = c.comId AND b.inetStatus = 1</sql>
+		</table>
+		<table src="$locationTypes" dst="$locationTypes">
+			<key dst="typeId" type="int AUTO_INCREMENT NOT NULL" src="typeId" srctype="int NOT NULL" />
+			<col dst="locType" type="varchar(50)" src="locType" stctype="varchar(50)" />
+			<sql>INSERT INTO inet_locationTypes SELECT typeId, locationType FROM mdb_locationTypes</sql>
+		</table>
+		<table dst="$countries" src="$countries">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="countryId" type="int NOT NULL" src="countryId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="countryCode" type="char(2) NULL" src="countryCode" srctype="char(2) NULL" />
+			<col dst="countryName" type="varchar(200) CHARACTER SET utf8 NULL" src="countryName" srctype="nvarchar(200) NULL" />
+			<col dst="phonePrefix" type="varchar(50) NULL" src="phonePrefix" srctype="varchar(50) NULL" />
+			<sql>INSERT INTO inet_countries SELECT a.countryId, a.locale, a.countryCode, a.commonName, a.ituTelephoneCode FROM mdb_isoCountries a</sql>
+		</table>
+		<table dst="$companyLocations" src="$companyLocations">
+		  <key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="locId" type="int NOT NULL" src="locId" srctype="int NOT NULL" />
+			<col dst="comId" type="int NOT NULL" src="comId" srctype="int NOT NULL" />
+			<col dst="url" type="varchar(50) NULL" src="url" srctype="varchar(50) NULL" />
+			<col dst="shortName" type="varchar(50) NULL" src="shortName" srctype="varchar(50) NULL" />
+			<sql>INSERT INTO inet_companyLocations SELECT a.locId, a.comId, a.url, a.shortName FROM mdb_companyLocations a WHERE inetStatus = 1</sql>
+		</table>
+		<table dst="$companies" src="$companies">
+			<key dst="comId" type="int NOT NULL" src="comId" srctype="int NOT NULL" />
+			<col dst="comName" type="varchar(200) CHARACTER SET utf8 NULL" src="comName" srctype="nvarchar(200) NULL" />
+			<sql>INSERT INTO inet_companies SELECT comId, comName FROM mdb_companies</sql>
+		</table>
+		<table dst="$users" src="$users">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="" srctype="int identity NOT NULL" />
+			<col dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) DEFAULT 'en' NOT NULL" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="displayName" type="varchar(200) CHARACTER SET utf8 NULL" src="displayName" srctype="nvarchar(200) NULL" />
+			<col dst="title" type="varchar(200) CHARACTER SET utf8 NULL" src="title" srctype="nvarchar(200) NULL" />
+			<col dst="firstName" type="varchar(200) CHARACTER SET utf8 NULL" src="firstName" srctype="nvarchar(200) NULL" />
+			<col dst="middleName" type="varchar(200) CHARACTER SET utf8 NULL" src="middleName" srctype="nvarchar(200) NULL" />
+			<col dst="nobleName" type="varchar(200) CHARACTER SET utf8 NULL" src="nobleName" srctype="nvarchar(200) NULL" />
+			<col dst="lastName" type="varchar(200) CHARACTER SET utf8 NULL" src="lastName" srctype="nvarchar(200) NULL" />
+			<col dst="birthday" type="datetime NULL" src="birthday" srctype="datetime NULL" convert="mysqldate" />
+			<col dst="displayResume" type="text CHARACTER SET utf8 NULL" src="displayResume" srctype="ntext NULL" />
+			<col dst="displayLectures" type="text CHARACTER SET utf8 NULL" src="displayLectures" srctype="ntext NULL" />
+			<col dst="displayPublications" type="text CHARACTER SET utf8 NULL" src="displayPublications" srctype="ntext NULL" />
+			<col dst="displayFocus" type="text CHARACTER SET utf8 NULL" src="displayFocus" srctype="ntext NULL" />
+			<col dst="displayLanguages" type="varchar(200) CHARACTER SET utf8 NULL" src="displayLanguages" srctype="nvarchar(200) NULL" />
+			<sql>DELETE FROM inet_users</sql>
+			<sql>INSERT INTO inet_users SELECT a.userId, b.locale, b.displayName,a.title,a.firstName,a.middleName,a.nobleName,a.lastName,a.birthday,b.education,b.lectures,b.publications,b.practice,b.languages FROM mdb_users a, mdb_userInet b WHERE b.published = 1 AND a.locale = 'en' AND a.userId = b.userId AND showBirthday = 1</sql>
+			<sql>INSERT INTO inet_users SELECT a.userId, b.locale, b.displayName,a.title,a.firstName,a.middleName,a.nobleName,a.lastName,NULL,b.education,b.lectures,b.publications,b.practice,b.languages FROM mdb_users a, mdb_userInet b WHERE b.published = 1 AND a.locale = 'en' AND a.userId = b.userId AND showBirthday = 0</sql>
+		</table>
+		<table dst="$userAddresses" src="$userAddresses">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="" srctype="int identity NOT NULL" />
+			<col dst="adrId" type="int NOT NULL" src="adrId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="userId" type="int NULL" src="userId" srctype="int NULL" />
+			<col dst="comId" type="int NULL" src="comId" srctype="int NULL" />
+			<col dst="locId" type="int NULL" src="locId" srctype="int NULL" />
+			<col dst="adrDisplayName" type="varchar(200) CHARACTER SET utf8 NULL" src="adrDisplayName" srctype="nvarchar(200) NULL" />
+			<col dst="adrDisplayPositions" type="varchar(200) CHARACTER SET utf8 NULL" src="adrDisplayPositions" srctype="nvarchar(200) NULL" />
+			<col dst="adrDisplayPhone" type="varchar(200) CHARACTER SET utf8 NULL" src="adrDisplayPhone" srctype="nvarchar(200) NULL" />
+			<col dst="adrDisplayFax" type="varchar(200) CHARACTER SET utf8 NULL" src="adrDisplayFax" srctype="nvarchar(200) NULL" />
+			<col dst="adrDisplayEmail" type="varchar(200) CHARACTER SET utf8 NULL" src="adrDisplayEmail" srctype="nvarchar(200) NULL" />
+			<col dst="adrAddress" type="varchar(200) CHARACTER SET utf8 NULL" src="adrAddress" srctype="nvarchar(200) NULL" />
+			<col dst="adrZip" type="varchar(20) CHARACTER SET utf8 NULL" src="adrZip" srctype="nvarchar(20) NULL" />
+			<col dst="adrCity" type="varchar(200) CHARACTER SET utf8 NULL" src="adrCity" srctype="nvarchar(200) NULL" />
+			<col dst="adrState" type="varchar(200) CHARACTER SET utf8 NULL" src="adrState" srctype="nvarchar(200) NULL" />
+			<col dst="adrCountryId" type="int NULL" src="adrCountryId" srctype="int NULL" />
+			<col dst="adrEmail" type="varchar(200) CHARACTER SET utf8 NULL" src="adrEmail" srctype="varchar(200) NULL" />
+			<col dst="adrPhone" type="varchar(200) CHARACTER SET utf8 NULL" src="adrPhone" srctype="varchar(200) NULL" />
+			<col dst="adrPhoneExt" type="varchar(200) CHARACTER SET utf8 NULL" src="adrPhoneExt" srctype="varchar(200) NULL" />
+			<col dst="adrFax" type="varchar(200) CHARACTER SET utf8 NULL" src="adrFax" srctype="varchar(200) NULL" />
+			<col dst="adrFaxExt" type="varchar(200) CHARACTER SET utf8 NULL" src="adrFaxExt" srctype="varchar(200) NULL" />
+			<col dst="sortOrder" type="int default 1" src="sortOrder" srctype="int default 1" />
+			<sql>SET CONCAT_NULL_YIELDS_NULL OFF</sql>
+			<sql>DELETE FROM inet_useraddresses</sql>
+			<sql>INSERT INTO inet_userAddresses SELECT c.adrId, b.locale, a.userId, c.comId, c.locId, NULL, b.position, b.phone, b.fax, b.email, NULL, NULL, NULL, NULL, NULL, a.email, d.phonePrefix, a.phoneExt, d.phonePrefix, a.faxExt, c.sortOrder FROM mdb_users a, mdb_userInet b, mdb_userAddresses c, mdb_locations d WHERE a.locale = 'en' AND c.locale = 'en' AND a.userId = b.userId AND c.locale = d.locale AND a.userId = c.userId AND c.locId = d.locId AND b.published = 1</sql>
+      <sql>UPDATE inet_userAddresses SET adrDisplayPhone = v.phone FROM inet_userAddresses i, view_inetAddresses v WHERE v.userId = i.userId AND i.adrDisplayPhone IS NULL AND v.locale = i.locale</sql>
+      <sql>UPDATE inet_userAddresses SET adrDisplayFax = v.fax FROM inet_userAddresses i, view_inetAddresses v WHERE v.userId = i.userId AND i.adrDisplayFax IS NULL AND v.locale = i.locale</sql>
+      <sql>UPDATE inet_userAddresses SET adrDisplayPhone = adrPhone + ' - ' + adrPhoneExt WHERE adrDisplayPhone IS NULL</sql>
+      <sql>UPDATE inet_userAddresses SET adrDisplayFax = adrPhone + ' - ' + adrFaxExt WHERE adrDisplayFax IS NULL</sql>
+		</table>
+		<table dst="$languages" src="$languages">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="langId" type="int NOT NULL" src="langId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="langCode" type="char(2) NULL" src="langCode" srctype="char(2) NULL" />
+			<col dst="langName" type="varchar(200) CHARACTER SET utf8 NULL" src="langName" srctype="nvarchar(200) NULL" />
+			<sql>DELETE FROM inet_languages</sql>
+			<sql>INSERT INTO inet_languages SELECT langId, 'de', langCode, langNameDE FROM mdb_languages WHERE active = 1 ORDER BY sortOrder</sql>
+			<sql>INSERT INTO inet_languages SELECT langId, 'en', langCode, langNameEN FROM mdb_languages WHERE active = 1 ORDER BY sortOrder</sql>
+			<sql>INSERT INTO inet_languages SELECT langId, 'ru', langCode, langNameRU FROM mdb_languages WHERE active = 1 ORDER BY sortOrder</sql>
+			<sql>INSERT INTO inet_languages SELECT langId, 'zh', langCode, langNameZH FROM mdb_languages WHERE active = 1 ORDER BY sortOrder</sql>
+		</table>
+		<table dst="$userLanguages" src="$userLanguages">
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<key dst="langId" type="int NOT NULL" src="langId" srctype="int NOT NULL" />
+			<col dst="sortOrder" type="int NULL" src="sortOrder" srctype="int NULL DEFAULT 0" />
+			<sql>DELETE FROM inet_userLanguages</sql>
+			<sql>INSERT INTO inet_userLanguages SELECT a.userId, b.langId, quality FROM inet_users a, mdb_userLanguages b, inet_languages c WHERE a.userId = b.userId AND b.langId = c.langId AND c.locale = 'de' AND a.locale='de' ORDER BY c.rowId</sql>
+		</table>
+		<table dst="$userLectures" src="$userLectures">
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<key dst="lecId" type="int NOT NULL" src="lecId" srctype="int NOT NULL" />
+			<col dst="sortOrder" type="int NULL" src="sortOrder" srctype="int NULL" />
+			<sql>INSERT INTO inet_userLectures SELECT a.userId, a.lecId, a.sortOrder FROM mdb_userLectures a, inet_users b WHERE b.locale = 'en' AND b.userId IS NOT NULL AND a.userId = b.userId</sql>
+		</table>
+		<table dst="$lectures" src="$lectures">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int identity NOT NULL" />
+			<col dst="lecId" type="int NOT NULL" src="lecId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="lecTitle" type="text CHARACTER SET utf8 NULL" src="lecTitle" srctype="nvarchar(500) NULL" />
+			<col dst="lecDescription" type="text CHARACTER SET utf8 NULL" src="lecDescription" srctype="ntext NULL" />
+			<col dst="lecLinkUrl" type="varchar(200) NULL" src="lecLinkUrl" srctype="varchar(200) NULL" />
+			<col dst="lecDate" type="varchar(20) NULL" src="lecDate" srctype="varchar(20) NULL" />
+			<sql>INSERT INTO inet_lectures SELECT lecId, locale, lecTitle, lecDescription, lecLinkUrl, lecDate FROM mdb_lectures</sql>
+		</table>
+		<table dst="$positions" src="$positions">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="posId" type="int NOT NULL" src="posId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="posTitle" type="varchar(200) CHARACTER SET utf8 NULL" src="posTitle" srctype="nvarchar(200) NULL" />
+			<sql>INSERT INTO inet_positions SELECT posId, locale, posTitle FROM mdb_positions</sql>
+		</table>
+		<table dst="$userPositions" src="$userPositions">
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<key dst="posId" type="int NOT NULL" src="posId" srctype="int NOT NULL" />
+			<key dst="locId" type="int NULL" src="locId" srctype="int NULL" />
+			<col dst="comId" type="int NULL" src="comId" srctype="int NULL" />
+			<col dst="sortOrder" type="int NULL DEFAULT 0" src="sortOrder" srctype="int NULL DEFAULT 0" />
+			<sql>INSERT INTO inet_userPositions SELECT a.userId, posId, locId, comId, sortOrder FROM mdb_userPositions a, inet_users b WHERE b.locale = 'en' AND a.userId = b.userId</sql>
+		</table>
+		<table dst="$functions" src="$functions">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="fncId" type="int NOT NULL" src="fncId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="locale" srctype="varchar(10) NOT NULL DEFAULT 'en'" />
+			<col dst="fncTitle" type="varchar(200) CHARACTER SET utf8 NULL" src="fncTitle" srctype="nvarchar(200) NULL" />
+			<sql>INSERT INTO inet_functions SELECT fncId, locale, fncTitle FROM mdb_functions</sql>
+		</table>
+		<table dst="$userFunctions" src="$userFunctions">
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<key dst="fncId" type="int NOT NULL" src="fncId" srctype="int NOT NULL" />
+			<col dst="locId" type="int NULL" src="locId" srctype="int NULL" />
+			<col dst="sortOrder" type="int NULL DEFAULT 0" src="sortOrder" srctype="int NULL DEFAULT 0" />
+			<sql>INSERT INTO inet_userFunctions SELECT a.userId, fncId, locId, sortOrder FROM mdb_userFunctions a, inet_users b WHERE b.locale = 'en' AND a.userId = b.userId</sql>
+		</table>
+		<xtable dst="$userMemberdbPublications" src="$userMemberdbPublications">
+			<key dst="pubId" type="int NOT NULL" src="pubId" srctype="int NOT NULL" />
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<col dst="sortOrder" type="int NOT NULL DEFAULT 0" src="sortOrder" srctype="int NOT NULL DEFAULT 0" />
+			<sql>INSERT INTO inet_userMemberdbPublications SELECT a.publicationId, a.userId, a.sortOrder FROM mdb_userPublications a, inet_users b WHERE b.locale = 'de' AND a.userId = b.userId ORDER BY sortOrder</sql>
+		</xtable>
+		<table dst="$userPublications" src="$userPublications">
+			<key dst="pubId" type="int NOT NULL" src="pubId" srctype="int NOT NULL" />
+			<key dst="userId" type="int NOT NULL" src="userId" srctype="int NOT NULL" />
+			<col dst="sortOrder" type="int NOT NULL DEFAULT 0" src="sortOrder" srctype="int NOT NULL DEFAULT 0" />
+			<sql>INSERT INTO inet_userPublications SELECT pubId, userId, 1 FROM mdb_internetPublications a WHERE a.pubShow = 1 AND a.userId IS NOT NULL ORDER BY a.userId, a.pubYear, a.pubMonth</sql>
+		</table>
+		<xtable dst="$publishers" src="$publishers">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int identity NOT NULL" />
+			<col dst="publisherId" type="int NOT NULL" src="publisherId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NULL" src="locale" srctype="varchar(10) NULL" />
+			<col dst="publisherName" type="varchar(200) CHARACTER SET utf8 NULL" src="publisherName" srctype="nvarchar(200) NULL" />
+		</xtable>
+		<xtable dst="$memberdbPublications" src="$memberdbPublications">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="pubId" type="int NOT NULL" src="pubId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL" src="locale" srctype="varchar(10) NOT NULL" />
+			<col dst="sortOrder" type="int NULL" src="sortOrder" srctype="int NULL" />
+			<col dst="pubTitle" type="text CHARACTER SET utf8 NULL" src="pubTitle" srctype="ntext NULL" />
+			<col dst="pubDescription" type="text CHARACTER SET utf8 NULL" src="pubDescription" srctype="ntext NULL" />
+			<col dst="pubPublisherId" type="int NULL" src="pubPublisherId" srctype="int NULL" />
+			<col dst="pubReference" type="varchar(200) CHARACTER SET utf8 NULL" src="pubReference" srctype="nvarchar(200) NULL" />
+			<col dst="pubDateString" type="varchar(200) CHARACTER SET utf8 NULL" src="pubDateString" srctype="nvarchar(200) NULL" convert="mysqldate" />
+			<col dst="paGroupId" type="int NULL" src="paGroupId" srctype="int NULL" />
+			<sql>INSERT INTO inet_memberdbPublications SELECT a.publicationId, 'de', publicationOrder, publicationTitle, '', publisherId, publicationReference, publicationDateString, NULL FROM mdb_publications a, mdb_userPublications b, inet_users c WHERE a.locale = 'de' AND c.locale = 'de' AND c.userId = b.userId AND a.publicationId = b.publicationId ORDER BY publicationOrder</sql>
+			<sql>INSERT INTO inet_memberdbPublications SELECT a.publicationId, 'en', publicationOrder, publicationTitle, '', publisherId, publicationReference, publicationDateString, NULL FROM mdb_publications a, mdb_userPublications b, inet_users c WHERE a.locale = 'de' AND c.locale = 'de' AND c.userId = b.userId AND a.publicationId = b.publicationId ORDER BY publicationOrder</sql>
+		</xtable>
+		<table dst="$publications" src="$publications">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="rowId" srctype="int IDENTITY NOT NULL" />
+			<col dst="pubId" type="int NOT NULL" src="pubId" srctype="int NOT NULL" />
+			<col dst="locale" type="varchar(10) NOT NULL" src="locale" srctype="varchar(10) NOT NULL" />
+			<col dst="pubAuthor" type="varchar(250) CHARACTER SET utf8 NULL" src="pubAuthor" srctype="nvarchar(250) NULL" />
+			<col dst="pubDescription" type="text CHARACTER SET utf8 NULL" src="pubDescription" srctype="ntext NULL" />
+			<col dst="pubMonth" type="int NULL" src="pubMonth" srctype="int NULL" />
+			<col dst="pubYear" type="int NULL" src="pubYear" srctype="int NULL" />
+			<sql>INSERT INTO inet_publications SELECT pubId, 'de', authorName, pubDescription, pubMonth, pubYear FROM mdb_internetPublications a WHERE a.pubShow = 1 AND a.userId IS NOT NULL ORDER BY userId, pubYear, pubMonth</sql>
+			<sql>INSERT INTO inet_publications SELECT pubId, 'en', authorName, pubDescription, pubMonth, pubYear FROM mdb_internetPublications a WHERE a.pubShow = 1 AND a.userId IS NOT NULL ORDER BY userId, pubYear, pubMonth</sql>
+		</table>
+		<table dst="$locationPracticeAreaGroups" src="$locationPracticeAreaGroups">
+			<key dst="rowId" type="int AUTO_INCREMENT NOT NULL" src="" srctype="int IDENTITY NOT NULL" />
+			<col dst="locId" type="int NOT NULL" src="locId" srctype="int NOT NULL" />
+			<col dst="paGroupId" type="int NOT NULL" src="paGroupId" srctype="int NOT NULL" />
+			<sql>INSERT INTO inet_locationPracticeAreaGroups SELECT DISTINCT a.locId, b.paGroupId FROM inet_userAddresses a, inet_practiceAreas b, inet_userPracticeAreas c WHERE a.userId = c.userId AND b.paId = c.paId</sql>
+		</table>
+		<table dst="$userPhotos" src="$userPhotos">
+			<key dst="userId" type="int AUTO_INCREMENT NOT NULL" src="userId" srctype="int NOT NULL" />
+			<col dst="userPhoto" type="blob NOT NULL" src="userPhoto" srctype="image NOT NULL" />
+		</table>
+	</tables>
+</dbConvert>

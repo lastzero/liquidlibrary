@@ -1,0 +1,128 @@
+<html>
+<head>
+<title>Form definition for <?php echo $this->escape($this->title); ?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<style type="text/css">
+
+body {
+    font-size: 12px;
+    font-family: Verdana, Helvetica, Sans Serif;
+}
+
+h1 {
+    font-size: 16px;
+    margin: 2px 0 10px 0;
+}
+
+p {
+    margin: 10px 0 10px 0;
+}
+
+table th {
+    text-align: left;
+    font-weight: bold;
+    color: white;
+    background: #4f81bd;
+    min-width: 100px;
+    padding: 2px;
+    spacing: 0px;
+    font-size: 12px;
+    font-family: Verdana, Helvetica, Sans Serif;
+}
+
+table tr.odd th {
+    background: #b8cfec;
+}
+
+table tr.even th {
+    background: #95b3d7;
+}
+
+table tr.odd td {
+    background: #dce6f1;
+}
+
+table tr.even td {
+    background: #f7fbff;
+}
+
+table tr.row th {
+    color: black;    
+}
+
+table td {
+    text-align: left;
+    font-weight: normal;
+    color: black;
+    background: white;
+    min-width: 100px;
+    padding: 2px;
+    spacing: 0px;
+    font-size: 12px;
+    font-family: Verdana, Helvetica, Sans Serif;
+}
+
+table {
+    border-style: solid;
+    border-width: 0px;
+    border-color: #4f81bd;
+    border-collapse: collapse;
+}
+
+</style>
+</head>
+<body>
+<h1>Form definition for <?php echo $this->escape($this->title); ?></h1>
+
+<table>
+<tr>
+<th>Name</th>
+<?php 
+$cols = array();
+
+foreach($this->form as $key => $def) {
+    foreach($def as $label => $val) {
+        if(!isset($cols[$label])) {
+            $cols[$label] = ucfirst($label);
+        }
+    }
+} ?>
+<?php foreach($cols as $col) { ?>
+<th><?php echo $this->escape($col); ?></th>
+<?php } ?>
+</tr>
+<?php 
+$even = false;
+foreach($this->form as $key => $def) { 
+$even = !$even;
+?>
+<tr <?php if($even) { echo 'class="row even"'; } else { echo 'class="row odd"'; } ?>>
+<th>
+<?php echo $this->escape($key); ?>
+</th>
+<?php foreach($cols as $colKey => $col) { ?>
+<td><?php
+
+if(isset($def[$colKey])) { 
+    if(is_array($def[$colKey])) { 
+        $def[$colKey] = join(', ', $def[$colKey]); 
+    } 
+    
+    if(is_bool($def[$colKey])) {
+        $def[$colKey] = $def[$colKey] ? 'Yes' : 'No';
+    }
+    
+    echo $this->escape($def[$colKey]); 
+} else {
+    echo '&nbsp;'; 
+}    
+?></td>
+<?php } ?>
+</tr>
+<?php } ?>
+</table>
+
+<p>Date: <?php echo $this->escape(date('c')); ?></p>
+</body>
+</html>

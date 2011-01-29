@@ -1,0 +1,487 @@
++ Liquid Library
+
+* [[Liquid_Form]]
+* [[Liquid_Ajax]]
+* [[Liquid_Log]]
+* A few words about [[Unit Tests]]
+
++ Liquid_Form
+
+++ Einführung
+
+Form-Klassen auf dem Server werden im Allgemeinen zur Validierung von User-Input Daten verwendet. Weitere häufige Anwendungszwecke sind das vollständige Rendern eines Formulars, des Erzeugen von passendem JavaScript-Code, des Bereitstellen von Ajax-Schnittstellen oder das Abspeichern in einem Persistenz-Layer. Liquid_Form verfolgt nur das Ziel der Validierung und erlaubt zusätzlich das Initialisieren leerer Formulare sowie das Lesen und Schreiben von Werten. Damit erhöht sich die Flexibilität, während die Komplexität durch die klare Abgrenzung  zu anderen Werkzeugen reduziert wird. Insbesondere der Verzicht auf die Fähigkeit zum Ausgeben von fertigem HTML- oder JavaScript-Code macht Liquid_Form deutlich schlanker als Zend_Form. Die unkomplizierte und übersichtliche Definition von Formularen über Arrays erlaubt deren einfache Weiterverwendung in anderen Programmiersprachen wie JavaScript und erhöht die Entwicklungs-Geschwindigkeit.
+
+++ Formulare definieren
+
+Die Definition der Formularfelder kann entweder nach Instanziierung von Liquid_Form oder in abgeleiteten Klassen im Konstruktor erfolgen (empfohlene Variante):
+
+<code>$form = new Liquid_Form();
+
+$form->setDefinition(
+    array(
+        'firstname' => array(
+            'type' => 'string',
+            'min' => 2,
+            'max' => 10,
+            'caption' => 'Vorname'
+        ), 
+        'temperature' => array(
+            'type' => 'numeric',
+            'min' => 29.9,
+            'max' => 50.1,
+            'caption' => 'Temperatur'
+        ), 
+        'email' => array(
+            'type' => 'EmailAddress'
+        ),
+        'cars' => array(
+            'caption' => 'Autos',
+            'type' => 'array',
+            'options' => array(
+                'bmw' => 'BMW',
+                'hond' => 'Honda',
+                'gmc' => 'General Motors'
+             )
+        )
+    )
+);
+
+class Example_Form extends Liquid_Form {
+    public function __construct () {
+        $this->setDefinition(
+            array(                                
+                'oldpassword' => array(
+                    'caption' => 'Altes Passwort',
+                    'type' => 'string',
+                    'required' => false
+                ),
+                'newpassword' => array(
+                    'caption' => 'Neues Passwort',
+                    'type' => 'string',
+                    'min' => 6,
+                    'required' => false
+                )
+            )
+        );
+    }
+}
+
+$form = new Example_Form();
+
+</code>
+
+Existierende Formulare können mit addDefinition() erweitert werden. Ist ein Feld bereits definiert, wird eine Liquid_Form_Exception ausgelöst.
+
+<code>class Other_Example_Form extends Example_Form {
+    public function __construct () {
+        parent::__construct();
+        
+        $this->addDefinition('security_level', 
+            array(
+                'caption' => 'Sicherheit', 
+                'type' => 'string', 
+                'options' => array(
+                    'low' => 'Niedrig', 
+                    'high' => 'Hoch'
+                )
+            )
+        );
+    }
+}
+
+</code>
+
+Für die Feld-Definitionen stehen folgende Eigenschaften zur Verfügung:
+
+: **caption** : Überschrift (wird bei Validierungs-Fehlern in der Fehler-Beschreibung verwendet)
+: **type** : Werte-Typ; Zur Auswahl stehen int, numeric, scalar, array, bool, string, email, date sowie alle Zend_Validate Validatoren
+: **type_params** : Array mit optionalen Parametern für Zend_Validate
+: **options** : Array mit Werten, die das Feld annehmen darf (z.B. für Select-Listen oder Radio-Buttons)
+: **min** : Minimaler Wert bei Zahlen, Länge bei Strings bzw. Anzahl der Elemente bei Listen; Bei Daten entweder relativ zum aktuellen Datum (Anzahl von Tagen) oder als absolutes Datum
+: **max** : Maximaler Wert bei Zahlen, Länge bei Strings bzw. Anzahl der Elemente bei Listen; Bei Daten entweder relativ zum aktuellen Datum (Anzahl von Tagen) oder als absolutes Datum
+: **required** : Feld darf nicht leer sein (true/false)
+: **default** : Standard-Wert
+: **checkbox** : Wert kommt aus einer Formular-Checkbox und soll in setDefinedValues() und setDefinedWritableValues() zu einem Boolean-Wert umgewandelt werden (true/false)
+: **regex** : Beliebige Perl-kompatible Regular-Expression als String
+: **matches** : Muss mit angegebenem Feld übereinstimmen (z.B. bei Feldern für neues Passwort oder eMail Adressen)
+: **depends** : Pflichtfeld, abhängig von dem angegeben Feld
+: **depends_value** : Nur Pflichtfeld, wenn das Feld in "depends" den angegebenen Wert hat
+: **depends_value_empty** : Nur Pflichtfeld, wenn das Feld in "depends" leer ist (true/false)
+: **depends_first_option** : Nur Pflichtfeld, wenn das Feld in "depends" den letzten Wert seiner in "options" festgelegten Werte hat
+: **depends_last_option** : Nur Pflichtfeld, wenn das Feld in "depends" den ersten Wert seiner in "options" festgelegten Werte hat
+: **page** : Seiten-Nummer bei mehrseitigen Formularen
+
+
+Komplexe Validierungs-Regeln, die über die aufgelisteten einfachen Eigenschaften hinausgehen, sollten durch Erweiterung der validate() Methode in abgeleiteten Klassen erfolgen und/oder in den aufrufenden externen Klassen, da sich über rein statische Definitionen nur mit unverhältnismäßig hohem Aufwand komplexe Zusammenhänge abbilden lassen.
+
+Solange sich die Feld-Namen nicht überschneiden, lässt sich auch ein umfangreiches HTML-Formular mit mehreren Liquid_Form Klassen für Teilbereiche abbilden. Dies erleichtert hinterher die Zuordnung zu Datenbank-Tabellen und erlaubt es die Validierungs-Fehler über dem jeweiligen Teilbereich anzuzeigen.
+
+++ Initialisierung
+
+Die Initialisierung von Formularen mit bereits existierenden Werten aus einem Persistenz-Layer, z.B. einer Datenbank, erfolgt über $form->setDefinedValues(array $values). Diese Methode liefert eine Exception sollte ein Wert nicht vorhanden sein (Ausnahme sind als „checkbox“ markierte Felder, die dann den Boolean-Wert „false“ erhalten).
+Das komplette Formular inkl. Werten wird von $form->getForm() zurückgeliefert. Die Struktur entspricht dabei genau der Definition, jedoch mit einem zusätzlichen Feld „value“ für den aktuellen Wert:
+
+<code>Array (
+    [firstname] => Array (
+        [type] => string
+        [min] => 2
+        [max] => 10
+        [caption] => Vorname
+        [value] => Michael
+    )
+
+    [temperature] => Array (
+        [type] => numeric
+        [min] => 29.9
+        [max] => 50.1
+        [caption] => Temperatur
+        [value] => 31
+    )
+)
+
+</code>
+
+Diese Datenstruktur kann entweder vom Client per Ajax abgerufen werden um dort das Formular zu füllen und ggf. bereits vor dem Senden an den Server zu prüfen oder sie wird klassisch an die View übergeben um das Formular auf dem Server zu füllen:
+
+<code>
+public function somezendcontrollerAction () {
+    $form = new Example_Form();
+    $this->view->form = $form->getForm();
+}
+</code>
+<code>
+<select name="cars">
+<?php foreach($this->form['cars']['options'] as $key => $option) { ?>		  
+ <option value="<?php echo $key; ?>"><?php echo $this->escape($option); ?></option>
+<?php } ?>
+</select>
+</code>
+
+In JavaScript kann man die Felder z.B. mit jQuery initialisieren. Hier gezeigt anhand eines einfachen Code-Beispiels, das in der „success“-Callback-Funktion eines XmlHttpRequest stehen könnte:
+
+<code>
+for(var i in form) {
+  $("#form input[name='" + i +"']").val(form[i].value);
+}
+</code>
+
+++ Formular absenden
+
+Das Senden der Formular-Werte kann entweder wieder klassisch per HTTP Post an eine Zend Controller Action erfolgen oder via JavaScript, so dass man sich den Aufwand, das Formular nach Fehlern neu zu rendern, spart:
+
+<code>function submitForm () {
+    var form = $('#form').serializeArray();
+        
+    $.post('/server/url', form, function (data) {
+        $("#form input").css('border-color', null);
+                
+        if(!data.success) {
+            $('#profile div.validation').html( 
+                /* HTML with validation errors found in data.errors */
+            );            
+
+            for(var i in data.errors) { // Add red border to invalid input fields
+                $("#form input[name='" + i +"']").css('border-color', 'red');
+            }
+        } else {
+            alert('Erfolgreich!');
+        }
+    });
+}
+</code>
+
+++ Validierung
+
+Spätestens auf dem Server müssen die von jQuery.serializeArray() ausgelesenen Werte in ein key/value-Array umgebaut werden, um der Form-Klasse übergeben werden zu können. Grundsätzlich kann dieser Schritt auch bereits in JavaScript erfolgen. Hier ein Code-Beispiel in PHP:
+
+<code>foreach($form as $field) {
+    $values[$field['name']] = trim($field['value']);
+}
+
+</code>
+
+Anschließend können die Werte an das Form zur Validierung übergeben werden:
+
+<code>
+$form = new Example_Form();
+$errors = $form->setDefinedWritableValues($values)->validate()->getErrors();
+
+</code>
+
+Zu beachten ist, dass diesmal - anders als bei der Initialisierung - die Methode setDefinedWritableValues()verwendet wird, damit nur Felder die nicht “readonly” sind, aus den Daten übernommen werden. getErrors() liefert schließlich ein Array mit Fehlern. Sind keine Fehler vorhanden, ist das Array leer und man kann davon ausgehen, dass die Daten problemlos gespeichert werden können. Verwendet man mehrere Forms, können die Fehler so aggregiert werden:
+
+<code>
+$errors = array();
+$form1 = new Example_Form1();
+$errors += $form1->setDefinedWritableValues($values)->validate()->getErrors();
+$form2 = new Example_Form2();
+$errors += $form2->setDefinedWritableValues($values)->validate()->getErrors();
+</code>
+
+++ Mehrseitige Formulare
+
+Durch die zusätzliche Eigenschaft „page“ können die Felder eines mehrseitigen Formulars einzelnen Seiten zugeordnet werden. Die Fehler können mit getErrorsByPage() ausgelesen werden und sind nach Seiten-Nummer gruppiert.
+
+Zum Setzen der Werte auf der jeweils aktuellen Seite kann setWritableValuesOnPage($values, $page) verwendet werden. Diese Methode wirft nur eine Liquid_Form_Exception, falls nicht alle Werte der angegeben Seite in $values vorhanden sind (Ausnahme sind auch hier als „checkbox“ markierte Felder).
+
+++ Lokalisierung
+
+Für die Lokalisierung der Form-Validierungsfehler kann Zend_Translate verwendet werden. Entweder man übergibt dem Formular mittels setTranslateAdapter(Zend_Translate $translateAdapter) ein Zend_Translate-Objekt oder man setzt mit Liquid_Form::setDefaultTranslateAdapter (Zend_Translate $translateAdapter) eine Standard-Instanz von Zend_Translate.
+
+<code>$translate = new Zend_Translate(
+    array(
+        'adapter' => 'Array',
+        'content' => array(
+            '%1$s must not be empty' => '%1$s darf nicht leer sein'
+        ),
+        'locale'  => 'de_DE'
+    )
+);
+
+$form = new Example_Form();
+
+$form->setTranslateAdapter($translate);
+
+</code>
+
+Als Beispiel dient die statische Klasse Liquid_Form_Translate: Diese verwendet intern Zend_Translate_Adapter_Array und bietet eine einfache Unterstützung für die Locale „de_DE“. Mit Liquid_Form_Translate::setStrings(array $strings, $locale) können eigene Übersetzungs-Tabellen hinzugefügt werden.
+
+<code>
+Liquid_Form_Translate::setLocale('de_DE');
+
+$form = new Example_Form();
+       
+$values = array(
+    'firstname' => 'Bob', 
+    'temperature' => 300
+);
+        
+$form->setAllValues($values);
+               
+$errors = $form->validate()->getErrors();
+</code>
+
+++ Werte auslesen
+
+Ist man mit den Ergebnissen der Validierung zufrieden, kann man die Werte mit $form->getValues() wieder auslesen und speichern bzw. weiterverarbeiten:
+
+<code>
+if(count($errors) == 0) {
+    try {
+        Example_Model::save($form->getValues());
+        $success = true;                
+    } catch (Exception $e) {
+        $success = false;
+    }
+}
+</code>
+
+Liquid_Ajax
+
++ Liquid_Ajax
+
+++ Einführung
+Liquid_Ajax wurde entwickelt, um die Kommunikation zwischen Client und Server zu standardisieren und zu vereinfachen. Neben direkten Antworten unterstützt {{Liquid_Ajax_Controller}} auch verschiedene Ajax Push Server. Als Protokoll kommt JSON-RPC zum Einsatz. Ein Client ist für JavaScript sowie für PHP verfügbar, um mit {{Liquid_Ajax_Controller}} als RPC-Server eine mehrschichtige Architektur aufzubauen.
+
+++ Liquid_Ajax_Controller
+Der Controller basiert auf {{Zend_Controller_Action}} aus [http://framework.zend.com/ Zend Framework]. Er kann daher problemlos in jedes Zend Framework Projekt eingebunden werden. Die Konfiguration erfolgt in der {{init()}} Methode sowie den jeweiligen Actions, die die verschiedenen RPC-Services darstellen. Da die gesamte Kommunikation über JSON erfolgt, sind keine Views notwendig. {{Liquid_Ajax_Controller}} erlaubt den Zugriff auf beliebige lokale Objekte sowie entfernte SOAP/REST-Services.
+
++++ Beispiel
+
+<code><?php
+
+class RpcController extends Liquid_Ajax_Controller
+{   
+    public function init () {        
+        $this->enableDebugMode();
+        $this->setAjaxHandler(new Liquid_Ajax_Handler_Json());
+        $this->setCacheHandler(
+            new Zend_Cache_Backend_Memcached()
+        );         
+    }
+    
+    public function stockquotesAction()
+    {                
+        $this->setObject(new Liquid_Service_StockQuotes());
+        $this->useSessionCache(100);
+    }
+    
+    public function twitterAction()
+    {           
+        $this->setJsonRestService('http://api.twitter.com/1/');
+        $this->useGlobalCache(100);
+    }    
+}
+</code>
+
++++ Methoden-Referenz
+: **enableDebugMode()** : Aktiviert den Debug-Modus
+: **disableDebugMode()** : Deaktiviert den Debug-Modus (default)
+: **enableDevelopmentMode()** : Aktiviert den Entwickler-Modus mit erweiterten Fehler-Nachrichten
+: **disableDevelopmentMode()** : Deaktiviert den Entwickler-Modus (default)
+: **enableCsrfProtection()** : Schaltet den CSRF-Schutz ein (default)
+: **disableCsrfProtection()** : Deaktivert den CSRF-Schutz (für den Zugriff im Backend mit dem : Liquid_Ajax_Client)
+: **setAjaxHandler(Liquid_Ajax_Handler $handler)** : Setzt den AJAX Handler; zur Wahl stehen per Default Liquid_Ajax_Handler_Json, Liquid_Ajax_Handler_Stomp und {{Liquid_Ajax_Handler_Ape}}
+: **setCacheHandler($handler)** : Setzt den {{Zend_Cache_Backend}} Cache-Handler
+: **setObject($object)** : Erlaubt dem Client den Zugriff auf die Methoden des übergebenen Objekts
+: **setJsonRestService($url)** : Erlaubt dem Client den Zugriff auf den übergebenen JSON-REST Server
+: **setJsonRpcService($url)** : Erlaubt dem Client den Zugriff auf den übergebenen JSON-RPC-Server
+: **setXmlRestService($url)** : Erlaubt dem Client den Zugriff auf den übergebenen XML-REST-Server
+: **setSoapService($wsdl)** : Erlaubt dem Client den Zugriff auf den übergebenen SOAP-Server (statt einem WSDL-Dokument kann auch eine URL verwendet werden)
+: **setLoadBalancingServers(Array $servers)** : Setzt ein Array von Servern, die für die Lastverteilung bei aggregierten Anfragen genutzt werden können
+: **useSessionCache($sec)** : Aktiviert den Session-Cache (wenn Cache Handler gesetzt)
+: **useGlobalCache($sec)** : Aktiviert den globalen Cache (wenn Cache Handler gesetzt)
+: **setClientConfig(Array $config)** : Setzt ein Array, das beim ersten Verbindungsaufbau an den JavaScript-Client übergeben wird um dort Konfigurations-Optionen in der „config“ Eigenschaft verfügbar zu machen
+
+++ Liquid_Ajax_Client (PHP)
+
+Der PHP-Client erlaubt den Zugriff auf JSON-RPC kompatible Server, wie {{Liquid_Ajax_Controller}}. Im Gegensatz zum Liquid Ajax JavaScript-Client findet keine Initialisierung der Verbindung statt. Somit ist {{Liquid_Ajax_Controller::setClientConfig()}} sowie der CSRF-Schutz beim Einsatz des PHP-Clients wirkungslos. Ein entsprechend konfigurierter Server sollte also nicht von außen erreicht werden können und dient nur dem Aufbau einer mehrschichten Architektur mit Frontend- und Backend-Servern. 
+
+Prinzipiell können mit dem {{Liquid_Ajax_Client}} beliebige JSON-RPC kompatible Services aufgerufen werden. Spezielle Funktionen wie der Erhalt von Exception-Klassen zur Ausnahmebehandlung funktionieren jedoch nur mit dem {{Liquid_Ajax_Controller}}. Es wird empfohlen den Liquid_Ajax_Client mit einer eigenen Service-Klasse zu erweitern, damit die Konfiguration der URL sowie das Error-Handling und Logging dort zentral implementiert werden können.
+
++++ Beispiel
+
+<code><?php
+
+class Example_Service_Client extends Liquid_Ajax_Client {
+    public function __construct () {
+        parent::__construct('http://rpc.example.com/rpc/stockquotes');
+    }   
+}
+
+$client = new Example_Service_Client();
+$result = $client->someMethod($params);
+</code>
+
+++ Unterstützung von Fixtures im Liquid_Ajax_Client
+
+Um Unit-Tests mit Klassen, die den {{Liquid_Ajax_Client}} benutzen, zu beschleunigen und die zu erwartenden Server-Antworten gleichzeitig zu dokumentieren, unterstützt der Client die Verwendung von Fixtures. Ein weiterer Vorteil ist, dass die Unit-Tests auch ohne funktionierende Internet-Verbindung fehlerfrei ausgeführt werden können. Im Fixture-Modus prüft die Klasse bei einem RPC-Aufruft zunächst, ob die Antwort zu der angefragten URL, Methode und den Parametern bereits in einer Datei vorliegt. Falls nicht, wird der Request ausgeführt und die erhaltenen Daten in die Datei geschrieben. Beim nächsten Versuch kann die Anfrage dann sofort daraus beantwortet werden. Im Hintergrund kommt Liquid_Fixture zum Einsatz.
+
++++ Beispiel
+<code><?php
+$url = 'http://example.website/ajax/stockquotes';
+$client = new Liquid_Ajax_Client($url);
+$client->useFixtures(dirname(__FILE__) . '/_fixtures');
+
+$result = $client->getQuote('IBM');
+</code>
+
+++ Liquid.Ajax Client (JavaScript)
+Die JavaScript-Clients {{liquid/ajax/ajax.js}}, {{liquid/ajax/orbited/orbited.js}} und liquid/ajax/ape/ape.js nutzen jQuery und die darauf basierende Klassen-Implementierung von JavaScriptMVC (die aktuelle Version ist unter http://v3.javascriptmvc.com/index.html zu finden). Mit dem zusätzlichen Basis-Client in liquid/ajax/client.js ist eine Verwendung nur mit jQuery, d.h. ohne JavaScriptMVC oder andere jQuery-Plug-ins, möglich:
+
+<code><script type="text/javascript" src="/js/jquery/jquery.js">
+</script>
+<script type="text/javascript" src="/js/liquid/ajax/client.js">
+</script>
+<script type="text/javascript">
+Ajax.init({},{ log: console.log });
+
+Ajax.rpc({
+    service: 'debug',
+    method: 'echoRequest',
+    params: ['test'],
+    success: function (data) { alert(data) }                
+});
+</script>
+</code>
+
+Ein Verzicht auf JavaScriptMVC ist für größere Anwendungen nicht empfehlenswert, sofern kein vergleichbares Framework verwendet wird. Mit entsprechender Erfahrung kann der Client, durch Ersetzen der entsprechenden jQuery Funktionen, auch auf andere Frameworks portiert werden. Der erweiterte Client für den Ape Ajax-Push-Server basiert auf den MooTools und der Stomp-Client für den Orbited-Server verlangt ebenfalls nach weiteren Bibliotheken, die beim Einbinden automatisch geladen werden. Der Basis-Client hat keine weiteren Abhängigkeiten, unterstützt jedoch kein Ajax-Push, kann die Daten also nur auf Anfrage per XmlHttpRequest empfangen. Verwendet man einen anderen {{Liquid.Ajax}} Client, so muss auch der passende Ajax-Handler auf dem Server verwendet werden, also {{Liquid_Ajax_Handler_Stomp}} für {{Liquid.Ajax.Orbited}} und {{Liquid_Ajax_Handler_Ape}} für {{Liquid.Ajax.Ape}}.
+
+Direkt nach dem Start wird der Client eine Verbindung mit dem Server aufbauen und dort die initAction() aufrufen (z.B. http://example.com/rpc/init?version=1&time=1284852657416) um die Protokoll-Versionen zu vergleichen sowie Konfigurations-Daten zu empfangen, zum Beispiel ein Token für den eingebauten CSRF-Schutz (dieser sollte auf dem Server in jedem Fall aktiviert sein). Dieses Token wird über den URL-Parameter „t“ in allen folgenden Ajax-Requests übergeben und vom Server mit dem Wert in der Session verglichen. Stimmen die Werte nicht überein, lehnt der Server die Anfrage ab.
+
+Die Basis-Klasse sowie die erweiterten Klassen mit Ajax-Push-Support unterstützen verschiedene Optionen (mindestens jedoch rpcUrl und debugMode) und als zweiten Parameter eine Liste von Event-Callbacks (siehe Tabelle).
+
++++ Beispiel
+
+<code>Ajax = new Liquid.Ajax ({
+    rpcUrl: '/rpc',
+    debugMode: true
+},{
+    log: console.log,
+    onAjaxError: function (request, xhr) {},
+    onInitSuccess: function (data) {}
+});
+
+Ajax = new Liquid.Ajax.Orbited ({
+    orbited_hostname: 'ajax.example.local', 
+    orbited_port: 80
+},{
+    onConnected: function () {}
+});
+            
+Ajax = new Liquid.Ajax.Ape({
+    baseUrl: 'http://ape-example.local/js/ape',
+    domain: 'auto',
+    server: 'ape.ape-example.local:6969'
+});
+</code>
+
++++ Event-Callbacks
+
+: **addAjaxCallback(id, callback)** : Ein Callback wurde zur internen Liste hinzugefügt
+: **callAjaxCallback(id, data)** : Ein Callback wurde nach einem RPC-Call ausgelöst
+: **deleteAjaxCallback(id)** : Ein Callback wurde aus der internen Liste gelöscht
+: **init(options)** : Klasse wurde initialisiert 
+: **log(arg 1, ..., arg N)** : Log-Ausgabe (es kann ein beliebiger Logger, wie console.log, verwendet werden)
+: **onAjaxError(request, xhr-Objekt)** : Ein Ajax-Request ist fehlgeschlagen
+: **onAjaxSuccess(data)** :	Ein Ajax-Request war erfolgreich (Daten nur vorhanden, wenn kein Ajax-Push-Rückkanal vorhanden)
+: **onConnected()** : Verbindung wurde aufgebaut
+: **onDisconnected()** : Verbindung mit Server beendet
+: **onInitError()** : Init-Request ist fehlgeschlagen
+: **onInitSuccess(data)** :	Init-Request war erfolgreich
+: **onMessage(data)** :	Daten wurden via Ajax-Push empfangen
+: **onReady()** : Ajax-Push Verbindung ist bereit
+: **onRpcError(error)** : Ein RPC-Call ist mit einem Fehler beantwortet worden
+: **onRpcSuccess(result)** : Ein RPC-Call war erfolgreich
+: **publishRpcResponse({error, result, id})** :	Das Ergebnis eines RPC-Calls wurde an den Callback oder OpenAjax weitergereicht
+: **rpc{request, xhr)** : Ein RPC-Call wurde durchgeführt
+: **send(channel, message)** : Ajax-Push Message wurde vom Client gesendet
+: **sendInitRequest(data, url)** : Wird beim Absenden des init-Requests ausgelöst
+: **setConfig(config)** : Config-Daten nach init-Request
+: **setConnectionHash(connectionHash)** : Setzen des Channel-Namens für das aktuellen Browser-Fensters (nur für Ajax-Push relevant)
+: **setConnectionNumber(connectionNumber)** : Setzen der Fenster-Nummer (nur für Ajax-Push relevant)
+: **setDebugMode(debugMode)** :	Setzen des Debug-Modus (true/false)
+: **setDevelopmentMode(developmentMode)** : Setzen des Entwickler-Modus (true/false)
+: **setSecret(secret)** : CSRF-Token
+: **subscribe(channel)** : Es wurde ein Channel subscribed
+: **unsubscribe(channel)** : Es wurde ein Channel unsubscribed
+
++++ RPC Calls
+
+Ein RPC-Call auf den Server wird über die rpc-Methode ausgelöst. Dabei können als Callback sowohl Funktionen als auch OpenAjax-Event-Strings übergeben werden:
+
+<code>Ajax.rpc({
+    service: 'service_name',
+    method: 'some_method',
+    params: [param1, param2, param3],
+    success: 'some.event.example'‚
+    error: this.callback('onError')
+});
+
+</code>
+
+RPC-Calls, die vor dem Abschluss der Initialisierung ausgelöst werden oder während die Verbindung unterbrochen ist, landen in einer Queue und werden versendet sobald dies (wieder) möglich ist. 
+
+Fügt man einem OpenAjax-Event-String das Prefix „broadcast:“ hinzu, geht die Antwort an alle Clients in der aktuellen Session, ansonsten nur an das aktuelle Fenster (sofern ein Ajax-Push-Server verwendet wird).
+
++++ Request-Aggregation
+
+Die Request-Aggregation wird bei Übergabe eines Arrays automatisch aktiviert:
+
+<code>Ajax.rpc([{
+    service: 'service_name',
+    method: 'some_method',
+    params: [param1, param2, param3],
+    success: 'some.event.example'‚
+    error: this.callback('onError')
+},
+{
+    service: 'other_service_name',
+    method: 'other_method',
+    params: [param1],
+    success: 'broadcast:some.other.example'
+}]
+);
+</code>
+
+Dabei kann der {{Liquid_Ajax_Controller}} die Anfragen über verschiedene Frontend-Server verteilen (siehe {{setLoadBalancingServers(Array $servers)}} auf Seite 2), was jedoch nur bei aufwändigen Funktionen Performance-Vorteile verspricht und möglicherweise Server-Optimierungen erfordert.Liquid_LogUnit Tests

@@ -1,0 +1,913 @@
+<dbConvert>
+	<locale></locale>
+	<charset>ISO-8859-15</charset>
+	<source>
+		<host>localhost</host>
+		<database></database>
+		<username></username>
+		<password></password>
+		<prefix></prefix>
+		<type>PDO_MYSQL</type>
+	</source>
+	<destination>
+		<prefix></prefix>
+	</destination>
+	<export>
+		<prefix></prefix>
+	</export>
+	<tables>
+		<table src="$wlanguage" dst="$languages">
+			<key src="lang_counter" dst="langId" type="int NOT NULL" />
+			<col src="lang_id" dst="microsoftId" type="int NULL" />
+			<col src="lang_activ" srctype="int NULL" dst="active" type="bit NULL" convert="bool:1,0" />
+			<col src="lang_order" dst="sortOrder" type="int NULL" />
+			<col src="lang_iso639" dst="iso639" type="varchar(4) NULL" />
+			<col src="wlangshort" dst="langCode" type="varchar(4) NULL" />
+			<col src="lang_en" srctype="varchar(40) NULL" dst="langNameEN" type="nvarchar(40) NULL" convert="utf8" />
+			<col src="lang_de" srctype="varchar(40) NULL" dst="langNameDE" type="nvarchar(40) NULL" convert="utf8" />
+		</table>
+		<table src="$wjurisdiction" dst="$countries">
+			<key src="land_counter" dst="countryId" type="int NOT NULL" />
+			<col src="land_id" dst="microsoftId" type="varchar(10) NULL" />
+			<col src="wlandshort" dst="shortName" type="varchar(4) NULL" />
+			<col src="land_en" dst="countryNameEN" type="varchar(100) NULL" />
+			<col src="land_de" dst="countryNameDE" type="varchar(100) NULL" />
+		</table>
+		<table src="" dst="$isoCountries">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="countryId" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) default 'en'" />
+			<col src="" dst="commonName" type="nvarchar(100) NULL" />
+			<col src="" dst="formalName" type="nvarchar(100) NULL" />
+			<col src="" dst="type" type="varchar(100) NULL" />
+			<col src="" dst="subType" type="varchar(100) NULL" />
+			<col src="" dst="sovereignty" type="varchar(100) NULL" />
+			<col src="" dst="capital" type="varchar(100) NULL" />
+			<col src="" dst="iso4217CurrencyCode" type="varchar(50) NULL" />
+			<col src="" dst="iso4217CurrencyName" type="varchar(50) NULL" />
+			<col src="" dst="ituTelephoneCode" type="varchar(20) NULL" />
+			<col src="" dst="countryCode" type="char(2) NULL" />
+			<col src="" dst="longCountryCode" type="char(3) NULL" />
+			<col src="" dst="countryNumber" type="char(3) NULL" />
+			<col src="" dst="ianaCountryCode" type="varchar(50) NULL" />
+			<col src="" dst="microsoftId" type="varchar(10) NULL" />
+			<col stc="" dst="isPublished" type="bit default 0" />
+			<col src="" dst="creationDate" type="datetime default getdate()" />
+			<csv>countrylist.csv</csv>
+			<sql>INSERT INTO mdb_isoCountries SELECT a.countryId, 'de', b.countryNameDE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, a.countryCode, NULL, NULL, NULL, b.microsoftId, 1, getdate() FROM mdb_isoCountries a, mdb_countries b WHERE a.type = 'Independent State' AND a.countryCode = b.shortName AND a.countryCode != ''</sql>
+		</table>
+		<table src="" dst="$committees">
+			<key src="" dst="committeeId" type="int identity NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="" dst="committeeName" type="varchar(100) NULL" />
+		</table>
+		<table src="" dst="$nationalities">
+			<key src="" dst="nationalityId" type="int identity NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="" dst="nationalityName" type="varchar(100) NULL" />
+		</table>
+		<table src="" dst="$eliteGroups">
+			<key src="" dst="eliteGroupId" type="int identity NOT NULL" />
+			<col src="" dst="eliteGroupName" type="varchar(100) NULL" />
+		</table>
+		<table src="" dst="$divisions">
+			<key src="" dst="divId" type="int identity NOT NULL" />
+			<col src="" dst="divName" type="nvarchar(200) NOT NULL" />
+			<sql>INSERT INTO %%dsttable%% SELECT DISTINCT abteilung FROM cms_members WHERE jobtype = 'njur'</sql>
+		</table>
+		<table src="" dst="$userDivisions">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="userId" type="int NOT NULL" />
+			<col src="" dst="divId" type="int NOT NULL" />
+			<col src="" dst="divShare" type="int NULL" />
+			<sql>INSERT INTO %%dsttable%% SELECT idcount, divId, 100 FROM cms_members m, mdb_divisions d WHERE m.abteilung = d.divName and m.jobtype='njur'</sql>
+		</table>
+		<table src="" dst="$forbiddenInitials">
+			<key src="" dst="initialId" type="int identity NOT NULL" />
+			<col src="" dst="initial" type="varchar(8) NULL" />
+		</table>
+		<table src="$wvariables" dst="$dropdownLists">
+			<key src="" dst="rowId" identity="true" type="int identity NOT NULL" />
+			<col src="wAtype" srctype="varchar(10)" dst="isJur" type="bit NULL" convert="bool:jur,njur" />
+			<col src="wRAabteilung" dst="divisionLongName" type="varchar(100) NULL" />
+			<col src="wRAabteilungkurz" dst="divisionShortName" type="varchar(15) NULL" />
+			<col src="wRAJobbeschr" dst="jobLongDescription" type="varchar(80) NULL" />
+			<col src="wRAJobbkurz" dst="jobShortDescription" type="varchar(15) NULL" />
+			<col src="wRAAllabteilung" dst="division" type="varchar(100) NULL" />
+			<col src="wAusschuss" srctype="varchar(80)" dst="committeeId" type="int" convert="rel:mdb_committees,committeeName,committeeId" />
+			<col src="wNationality" srctype="varchar(50)" dst="nationalityId" type="int" convert="rel:mdb_nationalities,nationalityName,nationalityId" />
+			<col src="wSprachen" dst="dropdownLanguages" type="varchar(100) NULL" />
+			<col src="wLand" dst="dropdownCountries" type="varchar(100) NULL" />
+			<col src="wAbschluss" dst="dropdownDegrees" type="varchar(100) NULL" />
+			<col src="wEtagen" dst="dropdownFloors" type="varchar(10) NULL" />
+			<col src="wTitel" dst="dropdownTitles" type="varchar(80) NULL" />
+			<col src="wXinitials" srctype="varchar(8)" dst="forbiddenInitialId" type="int NULL" convert="rel:mdb_forbiddenInitials,initial,initialId" />
+			<col src="wElitegp" srctype="varchar(8)" dst="eliteGroupId" type="int NULL" convert="rel:mdb_eliteGroups,eliteGroupName,eliteGroupId" />
+			<col src="wFreetype" dst="freetextType" type="varchar(10) NULL" />
+			<col src="wFreetname" dst="freetextName" type="varchar(100) NULL" />
+		</table>
+		<table src="$members" dst="$users" archive="true">
+			<key src="" dst="rowId" type="int IDENTITY NOT NULL" />
+			<col src="idcount" dst="userId" identity="true" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NOT NULL" default="en" />
+			<col src="initial" dst="initial" type="varchar(8)" convert="trim" />
+			<col src="tkstatus" srctype="varchar(20)" dst="timeKeeper" type="bit NULL" convert="bool:tk,notk" />
+			<col src="elitelizenz" srctype="varchar(10)" dst="eliteLicense" type="bit NULL" convert="bool:ja,nein" />
+			<col src="nname" srctype="varchar(40) NULL" dst="lastName" type="nvarchar(80) NULL" convert="utf8" />
+			<col src="titel" srctype="varchar(40) NULL" dst="title" type="nvarchar(40) NULL" convert="utf8" />
+			<col src="vname" srctype="varchar(80) NULL" dst="firstName" type="nvarchar(80) NULL" convert="utf8" />
+			<col src="mname" srctype="varchar(80) NULL" dst="middleName" type="nvarchar(80) NULL" convert="utf8" />
+			<col src="zname" srctype="varchar(80) NULL" dst="nobleName" type="nvarchar(80) NULL" convert="utf8" />
+			<col src="displayname" srctype="varchar(80) NULL" dst="displayName" type="nvarchar(80)" convert="utf8" />
+			<col src="diktatz" dst="dictationSignature" type="varchar(8) NULL" />
+			<col src="jobtype" srctype="varchar(20)" dst="lawyer" type="bit NULL" convert="bool:jur,njur" />
+			<col src="jobbeschreibung" srctype="varchar(100)" dst="" type="" locale="en" convert="mrel:mdb_positions,rowId,posTitle,mdb_userPositions,posId,userId" />
+			<col src="abteilung" srctype="varchar(100)" dst="" type="" />
+			<col src="standort" srctype="varchar(6)" dst="" type="" convert="mrel:cms_location,dbcount,standort,mdb_userAddresses,locId,userId" />
+			<col src="email" dst="email" type="varchar(100) NULL" />
+			<col src="teleext" dst="phoneExt" type="varchar(8) NULL" />
+			<col src="faxext" dst="faxExt" type="varchar(8) NULL" />
+			<col src="gender" srctype="varchar(4) NULL" dst="gender" type="char(1) NULL" />
+			<col src="geburtsort" srctype="varchar(200) NULL" dst="birthplace" type="varchar(200) NULL" />
+			<col src="geburtstag" srctype="varchar(20) NULL" dst="birthday" type="datetime NULL" convert="date:%d.%m.%Y" />
+			<col src="omobil" dst="oMobile" type="varchar(20) NULL" />
+			<col src="pmobil" dst="pMobile" type="varchar(20) NULL" />
+			<col src="raumnr" dst="roomNumber" type="varchar(10) NULL" />
+			<col src="etage" dst="buildingFloor" type="varchar(10) NULL" />
+			<col src="haus" dst="building" type="varchar(100) NULL" />
+			<col src="aktivity" srctype="varchar(20)" dst="statusId" type="int NULL" convert="rel:mdb_status,status,statusId" />
+			<col src="jobstartdate" srctype="varchar(20)" dst="jobStartDate" type="datetime NULL" convert="date:%d.%m.%Y" />
+			<col src="jobenddate" srctype="varchar(20)" dst="jobEndDate" type="datetime NULL" convert="date:%d.%m.%Y" />
+			<col src="tkrate" srctype="varchar(100)" dst="timeKeeperRate" type="int NULL" convert="int" />
+			<col src="altinitials" dst="alternativeInitials" type="varchar(100) NULL" />
+			<col src="rasek" srctype="varchar(8) NULL" dst="" type="" convert="fmrel:cms_members,idcount,initial,mdb_usersRel,fromId,toId,Secretary" />
+			<col src="mentor" srctype="varchar(8) NULL" dst="" type="" convert="fmrel:cms_members,idcount,initial,mdb_usersRel,fromId,toId,Mentor" />
+			<col src="msprache" srctype="varchar(100) NULL" dst="nativeLanguage" type="varchar(100) NULL" />
+			<col src="nationality" dst="nationality" type="varchar(50) NULL" />
+			<col src="notkname" dst="noTimeKeeperName" type="varchar(100) NULL" />
+			<col src="notktele" dst="noTimeKeeperPhone" type="varchar(20) NULL" />
+			<col src="tkkonto" srctype="varchar(40)" dst="timeKeeperAccount" type="int NULL" convert="int" />
+			<col src="zlevel" dst="zlevel" type="varchar(2) NULL" />
+			<col src="sqlaccount" srctype="varchar(5) NULL"  dst="sqlAccount" type="bit NULL" convert="bool:on,off" />
+			<col src="lastdate" dst="lastDate" type="datetime NULL" />
+			<col src="elitepw" dst="elitePassword" type="varchar(200) NULL" />
+			<col src="jobpresence" dst="jobPresence" type="varchar(4) NULL" />
+			<col src="elitegp" srctype="varchar(8) NULL" dst="eliteGroupId" type="int NULL" convert="rel:mdb_eliteGroups,eliteGroupName,eliteGroupId" />
+			<col src="anstellung" dst="employment" type="varchar(6) NULL" />
+			<col src="eliteschulung" dst="eliteTraining" type="bit NULL" />
+			<col src="sysusr" dst="sysusr" type="varchar(20) NULL" />
+			<col src="lastchange" dst="lastChange" type="datetime default getdate()" />
+			<sql>
+				CREATE TRIGGER %%dsttable%%_tru ON %%dsttable%%
+				WITH EXECUTE AS CALLER
+				FOR UPDATE
+				AS
+				DECLARE @rowId INT
+				SELECT @rowId = rowId FROM deleted
+				DECLARE @sysUsr char(30);
+				SET @sysUsr = SYSTEM_USER;
+				BEGIN
+				 INSERT INTO %%dsttable%%Archive SELECT * FROM deleted
+				 UPDATE %%dsttable%% SET lastChange = getDate(), sysusr = @sysUsr WHERE rowId = @rowId
+				END
+			</sql>
+		</table>
+		<table src="" dst="$companies">
+			<key src="" dst="comId" type="int IDENTITY NOT NULL" />
+			<col src="" dst="comName" type="varchar(200) NULL" />
+		</table>
+		<table src="" dst="$companyLocations">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="comId" type="int NOT NULL" />
+			<col src="" dst="locId" type="int NOT NULL" />
+		</table>
+		<table src="$location" dst="$locations" archive="true">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" srctype="" identity="true" dst="locId" type="int" autoincrement="true" />
+			<col src="dbcount" srctype="int NULL" dst="oldId" type="int NULL" />
+			<col src="" dst="locale" type="varchar(10) NOT NULL" default="en" />
+			<col src="standort" dst="locationCode" type="varchar(6)" />
+			<col src="cname" srctype="varchar(100) NULL" dst="" type="" convert="mrel:mdb_companies,comId,comName,mdb_companyLocations,comId,locId"/>
+			<col src="strasse" srctype="varchar(100)" dst="address" type="nvarchar(100)" convert="utf8" />
+			<col src="ort" srctype="varchar(100)" dst="city" type="nvarchar(100)" convert="utf8" />
+			<col src="strasseplz" srctype="varchar(10)" dst="zip" type="nvarchar(10)" convert="utf8" />
+			<col src="staat" srctype="varchar(100)" dst="state" type="nvarchar(100)" convert="utf8" />
+			<col src="land" srctype="varchar(100) NULL" dst="countryId" type="int NULL" convert="rel:mdb_isoCountries,commonName,countryId" />
+			<col src="pf" srctype="varchar(20)" dst="pob" type="nvarchar(20)" convert="utf8" />
+			<col src="pfplz" srctype="varchar(10)" dst="pobZip" type="nvarchar(10)" convert="utf8" />
+			<col src="pfort" srctype="varchar(100)" dst="pobCity" type="nvarchar(100)" convert="utf8" />
+			<col src="ztele" srctype="varchar(20)" dst="phone" type="nvarchar(20)" convert="utf8" />
+			<col src="zfax" dst="fax" type="varchar(20)" />
+			<col src="zemail" dst="email" type="varchar(200)" />
+			<col src="zintracms" dst="intranet" type="varchar(200) NULL" />
+			<col src="zhp" dst="homepage" type="varchar(100)" />
+			<col src="zvwdisplay" dst="phonePrefixDisplay" type="varchar(30)" />
+			<col src="zvorwahl" dst="phonePrefix" type="varchar(20)" />
+			<col src="mp" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userFunctions,userId,locId,sortOrder,1,Management Partner" />
+			<col src="mp2" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userFunctions,userId,locId,sortOrder,2,Management Partner" />
+			<col src="zadmin" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userFunctions,userId,locId,sortOrder,1,Admin" />
+			<col src="zofficemanager" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,userFunctions,userId,locId,sortOrder,1,Office Manager" />
+			<col src="zbueromanager" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,userFunctions,userId,locId,sortOrder,1,Buero Manager" />
+			<col src="zlevel" srctype="varchar(2)" dst="locLevel" type="int" convert="int" />
+			<col src="locationtype" srctype="varchar(50)" dst="locationType" type="int" convert="rel:mdb_locationTypes,locationType,typeId" />
+			<col src="initialprefix" dst="initialPrefix" type="varchar(5)" />
+			<col src="zmemberdbmanager" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userFunctions,userId,locId,sortOrder,1,Member-DB Manager" />
+			<col src="lockonto" dst="bankAccount" type="varchar(20) NULL" />
+			<col src="locblz" dst="bankCode" type="varchar(12) NULL" />
+			<col src="locswiftcode" dst="bankSwift" type="varchar(20) NULL" />
+			<col src="lociban" dst="bankIban" type="varchar(50) NULL" />
+			<col src="locbankname" dst="bankName" type="varchar(100) NULL" />
+			<col src="locustid" dst="UStId" type="varchar(20) NULL" />
+			<col src="loctaxid" dst="taxId" type="varchar(20) NULL" />
+			<col src="gerichtskasten" srctype="varchar(40)" dst="courtBox" type="nvarchar(40) NULL" convert="utf8" />
+			<col src="zsupport" dst="supportEmail" type="varchar(200)" />
+			<col src="zmember" dst="memberdbEmail" type="varchar(200)" />
+			<col src="hrmanager" srctype="varchar(8) NULL" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userFunctions,userId,locId,sortOrder,1,Human Resources Manager" />
+			<col src="" srctype="" dst="directionsAirport" type="ntext NULL" />
+			<col src="" srctype="" dst="directionsCar" type="ntext NULL" />
+			<col src="" srctype="" dst="directionsTrain" type="ntext NULL" />
+			<col src="" dst="sysusr" type="varchar(20) NULL" />
+			<col src="" dst="lastChange" type="datetime default getdate()" />
+			<sql>
+				CREATE TRIGGER %%dsttable%%_tru ON %%dsttable%%
+				WITH EXECUTE AS CALLER
+				FOR UPDATE
+				AS
+				DECLARE @locId INT
+				SELECT @locId = locId FROM deleted
+				DECLARE @sysusr char(30);
+				SET @sysusr = SYSTEM_USER;
+				BEGIN
+				 INSERT INTO %%dsttable%%Archive SELECT * FROM deleted
+				 UPDATE %%dsttable%% SET lastChange = getDate(), sysusr = @sysusr WHERE locId = @locId
+				END
+			</sql>
+		</table>
+		<table src="" dst="$banks" archive="true">
+			<key src="" dst="bankId" type="int identity NOT NULL" />
+			<col src="" dst="bankName" type="nvarchar(255) NULL" />
+			<col src="" dst="bankCode" type="nvarchar(255) NULL" />
+			<col src="" dst="bankAddress" type="nvarchar(255) NULL" />
+			<col src="" dst="bankZip" type="nvarchar(32) NULL" />
+			<col src="" dst="bankCity" type="nvarchar(128) NULL" />
+			<col src="" dst="bankState" type="nvarchar(64) NULL" />
+			<col src="" dst="bankCountryId" type="int NULL" />
+			<col src="" dst="bankPhone" type="nvarchar(128) NULL" />
+			<col src="" dst="bankFax" type="nvarchar(128) NULL" />
+			<col src="" dst="bankSwift" type="nvarchar(11) NULL" />
+			<sql>INSERT INTO %%dsttable%% SELECT DISTINCT bankName, bankCode, NULL, NULL, NULL, NULL, NULL, NULL, NULL, bankSwift FROM mdb_locations a WHERE bankName IS NOT NULL</sql>
+		</table>
+		<table src="" dst="$accounts" archive="true">
+			<key src="" dst="accId" type="int identity NOT NULL" />
+			<col src="" dst="bankId" type="int NULL" />
+			<col src="" dst="accHolder" type="nvarchar(255) NULL" />
+			<col src="" dst="accNumber" type="nvarchar(128) NOT NULL" />
+			<col src="" dst="accIBAN" type="nvarchar(255) NULL" />
+			<col src="" dst="accCurrency" type="nvarchar(64) NULL" />
+			<sql>INSERT INTO %%dsttable%% SELECT DISTINCT a.bankId, b.comName, c.bankAccount, c.bankIban, NULL FROM mdb_banks a, mdb_companies b, mdb_locations c, mdb_companyLocations d WHERE a.bankSwift = c.bankSwift AND b.comId = d.comId AND c.locId = d.locId</sql>
+		</table>
+		<table src="" dst="$companyAccounts">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="comId" type="int NOT NULL" />
+			<col src="" dst="locId" type="int NULL" />
+			<col src="" dst="accId" type="int NOT NULL" />
+			<sql>INSERT INTO %%dsttable%% SELECT DISTINCT b.comId, c.locId, a.accId FROM mdb_accounts a, mdb_companies b, mdb_locations c, mdb_companyLocations d WHERE a.accNumber = c.bankAccount AND b.comId = d.comId AND c.locId = d.locId</sql>
+			<sql>ALTER TABLE mdb_locations DROP COLUMN bankName</sql>
+			<sql>ALTER TABLE mdb_locations DROP COLUMN bankIban</sql>
+			<sql>ALTER TABLE mdb_locations DROP COLUMN bankSwift</sql>
+			<sql>ALTER TABLE mdb_locations DROP COLUMN bankCode</sql>
+			<sql>ALTER TABLE mdb_locations DROP COLUMN bankAccount</sql>
+			<sql>ALTER TABLE mdb_locationsArchive DROP COLUMN bankName</sql>
+			<sql>ALTER TABLE mdb_locationsArchive DROP COLUMN bankIban</sql>
+			<sql>ALTER TABLE mdb_locationsArchive DROP COLUMN bankSwift</sql>
+			<sql>ALTER TABLE mdb_locationsArchive DROP COLUMN bankCode</sql>
+			<sql>ALTER TABLE mdb_locationsArchive DROP COLUMN bankAccount</sql>
+		</table>
+		<table src="" dst="$userPositions" archive="true">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="posId" type="int" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="locId" type="int NULL" />
+			<col src="" dst="comId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int default 1" />
+			<col src="" dst="archiveFlag" type="bit default 0" />
+			<col src="" dst="defaultFlag" type="bit default 1" />
+			<col src="" dst="sysusr" type="varchar(20) NULL" />
+			<col src="" dst="lastChange" type="datetime default getdate()" />
+			<sql>
+				CREATE TRIGGER %%dsttable%%_tru ON %%dsttable%%
+				WITH EXECUTE AS CALLER
+				FOR UPDATE
+				AS
+				DECLARE @rowId INT
+				SELECT @rowId = rowId FROM deleted
+				DECLARE @sysUsr char(30);
+				SET @sysUsr = SYSTEM_USER;
+				BEGIN
+				 INSERT INTO %%dsttable%%Archive SELECT * FROM deleted
+				 UPDATE %%dsttable%% SET lastChange = getDate(), sysusr = @sysUsr WHERE rowId = @rowId
+				END
+			</sql>
+		</table>
+		<table src="" dst="$positions">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="posId" type="int NULL" />
+			<col src="" dst="locale" type="varchar(10) default 'en'" />
+			<col src="" dst="posTitle" type="nvarchar(100)" />
+			<col src="" dst="posDescription" type="ntext NULL" />
+			<sql>UPDATE %%dsttable%% SET posId = rowId</sql>
+			<sql>ALTER TABLE %%dsttable%% ALTER COLUMN posId int NOT NULL</sql>
+		</table>
+		<table src="" dst="$status">
+			<key src="" dst="statusId" type="int identity NOT NULL" />
+			<col src="" dst="status" type="varchar(20)" />
+		</table>
+		<table src="$wbranchen" dst="$branches">
+			<key src="bch_counter" identity="true" dst="branchId" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="bch_id" dst="branchId2" type="int NULL" />
+			<col src="bch_cmsid" dst="cmsId" type="varchar(5) NULL" />
+			<col src="bch_status" dst="status" type="int NULL" />
+			<col src="bch_tree1_de" dst="mainBranch" type="varchar(100) NULL" />
+			<col src="bch_tree2_de" dst="branchName" type="varchar(100) NULL" />
+			<col src="bch_short_de" dst="shortName" type="varchar(100) NULL" />
+			<col src="bch_discription" srctype="varchar(1000) NULL" dst="description" type="text NULL" />
+			<col src="bch_link" dst="linkUrl" type="varchar(500) NULL" />
+		</table>
+		<table src="$branchen" dst="$userBranches">
+			<key src="bch_counter" dst="rowId" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="bch_cmsid" srctype="varchar(5)" dst="branchId" type="int" convert="rel:cms_wbranchen,bch_cmsid,bch_counter" />
+			<col src="bch_main" srctype="int" dst="mainBranch" type="bit" convert="bool:1,0" />
+			<col src="bch_order" dst="branchOrder" type="int" />
+			<col src="bch_level" dst="branchLevel" type="int" />
+		</table>
+		<table src="$jurisdiction" dst="$userJurisdictions">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="data_id" dst="jurId" type="int NULL" />
+			<col src="locale" dst="locale" type="varchar(10) NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="land_id" srctype="varchar(10) NULL" dst="countryId" type="int NULL" convert="rel:mdb_isoCountries,microsoftId,countryId" />
+			<col src="jurdic_date" srctype="varchar(100) NULL" dst="jurDate" type="datetime NULL" convert="date" />
+			<col src="jurdic_main" srctype="int NULL" dst="jurMain" type="bit NULL" convert="bool:1,0" />
+			<col src="jurdic_gericht" dst="jurCourt" type="varchar(20) NULL" />
+			<col src="jurdic_ort" dst="jurCountry" type="varchar(100) NULL" />
+			<col src="jurdic_state" dst="jurState" type="varchar(100) NULL" />
+		</table>
+		<table src="$language" dst="$userLanguages">
+			<key src="lang_counter" identity="true" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="lang_id" srctype="int " dst="langId" type="int" convert="rel:mdb_languages,microsoftId,langId" />
+			<col src="lang_quality" dst="quality" type="int NULL" />
+			<col src="lang_main" srctype="int NULL" dst="mainLang" type="bit NULL" convert="bool:1,0" />
+			<col src="lastchange" dst="lastChange" type="datetime" />
+			<col src="sysusr" dst="sysusr" type="varchar(20) NULL" />
+		</table>
+		<_table src="$specialism" dst="$specializations">
+			<col src="pag_counter" dst="counterId" type="int NULL" />
+			<key src="pag_id" dst="specId" type="int NOT NULL" />
+			<key src="" dst="locale" type="varchar(10) NOT NULL" default="de" />
+			<col src="cmsde_status" srctype="int NULL" dst="cmsStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="pag_status" srctype="int NULL" dst="pagStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="sub_pag" srctype="int NULL" dst="sub" type="bit NULL" convert="bool:1,0" />
+			<col src="tree1_de" dst="categoryDE" type="varchar(100) NULL" />
+			<col src="tree2_de" dst="specNameDE" type="varchar(100) NULL" />
+			<col src="tree1_en" dst="categoryEN" type="varchar(100) NULL" />
+			<col src="tree2_en" dst="specNameEN" type="varchar(100) NULL" />
+			<col src="pag_short_de" dst="shortName" type="varchar(100) NULL" />
+			<col src="pag_discription" srctype="varchar(1000) NULL" dst="description" type="text NULL" />
+			<col src="pag_link" dst="linkUrl" type="varchar(500) NULL" />
+		</_table>
+		<_table src="$cmsfbs" dst="$userSpecializations">
+			<key src="fb_counter" dst="rowId" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="fb_id" dst="specId" type="int" />
+			<col src="subfb_id" dst="specSubId" type="int" />
+			<col src="fb_order" dst="specOrder" type="int" />
+			<col src="fb_main" srctype="int" dst="specMain" type="bit" convert="bool:1,0" />
+			<col src="fb_presence" dst="specPresence" type="int DEFAULT 100" />
+		</_table>
+		<table src="$memberships" dst="$memberships">
+			<col src="ms_counter" dst="counterId" type="int NULL" />
+			<key src="ms_id" identity="true" dst="membershipId" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="ms_status" srctype="int NULL" dst="msStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="ms_name_de" dst="nameDE" type="varchar(200) NULL" />
+			<col src="ms_short_de" dst="shortNameDE" type="varchar(100) NULL" />
+			<col src="ms_description" dst="description" type="text NULL" />
+			<col src="ms_region_de" dst="region" type="varchar(100) NULL" />
+			<col src="ms_base_de" dst="baseDE" type="varchar(100) NULL" />
+			<col src="ms_link" dst="linkUrl" type="varchar(200) NULL" />
+			<col src="ms_tel" dst="phone" type="varchar(30) NULL" />
+			<col src="ms_fax" dst="fax" type="varchar(30) NULL" />
+			<col src="ms_strasse" dst="address" type="varchar(100) NULL" />
+			<col src="ms_plz" dst="zip" type="varchar(10) NULL" />
+			<col src="ms_ort" dst="city" type="varchar(100) NULL" />
+			<col src="ms_land" dst="country" type="varchar(100) NULL" />
+			<col src="ms_personen" dst="persons" type="varchar(200) NULL" />
+			<col src="ms_rs_zusatz" dst="rsInfo" type="varchar(200) NULL" />
+			<col src="ms_initial_add" srctype="varchar(8) NULL" dst="addedByUserId" type="int NULL" convert="rel:mdb_users,initial,userId" />
+		</table>
+		<table src="$mships" dst="$userMemberships">
+			<key src="mship_counter" identity="true" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="ms_id" dst="memberhshipId" type="int" />
+			<col src="ms_date" srctype="varchar(20) NULL" dst="memberSince" type="datetime NULL" convert="date" />
+			<col src="ms_main" srctype="int NULL" dst="msMain" type="bit NULL" convert="bool:1,0" />
+			<col src="ms_order" dst="msOrder" type="int NULL" />
+			<col src="ms_status" srctype="int NULL" dst="msStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="ms_function" dst="msFunction" type="int NULL" />
+			<col src="ms_wfunction" dst="msWFunction" type="int NULL" />
+			<col src="ms_note" srctype="varchar(400) NULL" dst="notes" type="text NULL" />
+		</table>
+		<table src="$wcontacts" dst="$contacts">
+			<key src="cont_id" dst="contactId" type="int NOT NULL" />
+			<col src="cont_name" dst="contactName" type="varchar(400) NULL" />
+			<col src="cont_type" srctype="int NULL" dst="contactType" type="int NULL" />
+			<col src="cont_link" dst="contactLinkUrl" type="varchar(200) NULL" />
+			<col src="cont_desc" srctype="varchar(2000) NULL" dst="contactDescription" type="text NULL" />
+			<col src="cont_elite" dst="contactElite" type="varchar(50) NULL" />
+			<col src="cont_tele" dst="contactPhone" type="varchar(50) NULL" />
+			<col src="cont_email" dst="contactEmail" type="varchar(100) NULL" />
+			<col src="cont_branche" dst="contactBranch" type="varchar(50) NULL" />
+		</table>
+		<table src="$contacts" dst="$userContacts">
+			<key src="id" dst="rowId" type="int NOT NULL" />
+			<col src="data_id" dst="dataId" type="int NULL" />
+			<col src="locale" dst="locale" type="varchar(10) NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="cont_id" dst="contactId" type="int NULL" />
+		</table>
+		<table src="" dst="$freetextTypes">
+			<key src="" dst="typeId" type="int NOT NULL" />
+			<col src="" dst="typeName" type="varchar(10) NULL" />
+		</table>
+		<table src="$freetext" dst="$userFreetext">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="data_id" dst="freetextId" identity="true" type="int NULL" />
+			<col src="locale" dst="locale" type="varchar(10) NULL" />
+			<col src="initial" srctype="varchar(10)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="ftype" srctype="varchar(255)" dst="typeId" type="int" convert="rel:mdb_freetextTypes,typeName,typeId" />
+			<col src="ftext" srctype="text" dst="textBody" type="ntext" convert="utf8" />
+		</table>
+		<Xtable src="$wrgs" dst="$domains">
+			<key src="rg_counter" dst="domainId" type="int NOT NULL" />
+			<col src="rg_id" dst="cmsId" type="int" />
+			<col src="rg_status" srctype="int NULL" dst="visible" type="bit NULL" convert="bool:1,0" />
+			<col src="tree1_de" srctype="varchar(200) NULL" dst="catId" type="int NULL" locale="de" convert="rel:mdb_areasOfLaw,areaTitle,rowId" />
+			<col src="tree2_de" srctype="varchar(200) NULL" dst="subCatId" type="int NULL" locale="de" convert="rel:mdb_areasOfLaw,areaTitle,rowId" />
+			<col src="tree3_de" srctype="varchar(200) NULL" dst="areaId" type="int NULL"  locale="de" convert="rel:mdb_areasOfLaw,areaTitle,rowId" />
+			<col src="rg_short" dst="shortName" type="varchar(20) NULL" />
+			<col src="rg_link" dst="linkUrl" type="varchar(500) NULL" />
+			<col src="rg_order" dst="sortOrder" type="int NULL" />
+		</Xtable>
+		<Xtable src="" dst="$areasOfLaw">
+			<key src="" dst="rowId" type="int IDENTITY NOT NULL" />
+			<col src="" dst="areaId" type="int NULL" />
+			<col src="" dst="parentId" type="int NULL" />
+			<col src="" dst="locale" type="varchar(10)" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="areaLinkUrl" type="int NULL" />
+			<col src="" dst="areaTitle" type="varchar(200) NULL" />
+			<col src="" dst="areaType" type="int NULL" />
+			<col src="" dst="areaDescription" type="ntext NULL" />
+			<sql>UPDATE %%dsttable%% SET areaId = rowId</sql>
+			<sql>ALTER TABLE %%dsttable%% ALTER COLUMN areaId int NOT NULL</sql>
+			<sql>UPDATE mdb_areasOfLaw SET areaType = (SELECT TOP 1 3 FROM mdb_domains WHERE mdb_domains.areaId = mdb_areasOfLaw.areaId ) WHERE areaType IS NULL</sql> 
+			<sql>UPDATE mdb_areasOfLaw SET areaType = (SELECT TOP 1 2 FROM mdb_domains WHERE mdb_domains.subCatId = mdb_areasOfLaw.areaId) WHERE areaType IS NULL</sql>
+			<sql>UPDATE mdb_areasOfLaw SET areaType = (SELECT TOP 1 1 FROM mdb_domains WHERE mdb_domains.catId = mdb_areasOfLaw.areaId) WHERE areaType IS NULL</sql>
+			<sql>UPDATE mdb_areasOfLaw SET parentId = (SELECT TOP 1 catId FROM mdb_domains WHERE mdb_domains.subCatId = mdb_areasOfLaw.areaId) WHERE areaType = 2</sql>
+			<sql>UPDATE mdb_areasOfLaw SET parentId = (SELECT TOP 1 subCatId FROM mdb_domains WHERE mdb_domains.areaId = mdb_areasOfLaw.areaId) WHERE areaType = 3</sql>
+			<sql>UPDATE mdb_areasOfLaw SET areaLinkUrl = (SELECT TOP 1 linkUrl FROM mdb_domains WHERE mdb_domains.areaId = mdb_areasOfLaw.areaId) WHERE areaType = 3</sql>
+			<sql>UPDATE mdb_areasOfLaw SET sortOrder = (SELECT TOP 1 sortOrder FROM mdb_domains WHERE mdb_domains.subCatId = mdb_areasOfLaw.areaId) WHERE areaType = 2</sql>
+		</Xtable>
+		<Xtable src="$rgs" dst="$userDomains">
+			<key src="rgs_counter" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="rg_id" dst="domainId" type="int NULL" convert="rel:mdb_domains,cmsId,domainId" />
+			<col src="rgs_order" dst="sortOrder" type="int NULL" />
+			<col src="rgs_main" dst="main" type="int NULL" />
+			<col src="rgs_level" dst="level" type="int NULL" />
+			<col src="rgs_landid" dst="countryId" type="int NULL" />
+		</Xtable>
+		<Xtable src="$pag" dst="$userPag">
+			<key src="pag_counter" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="pag_id" dst="specId" type="int" />
+			<col src="subpag_id" dst="specSubId" type="int NULL" />
+			<col src="pag_order" dst="specOrder" type="int NULL" />
+			<col src="pag_main" srctype="int NULL" dst="specMain" type="bit NULL" convert="bool:1,0" />
+			<col src="pag_presence" dst="specPresence" type="int NULL" />
+		</Xtable>
+		<table src="$farvorite" dst="$userFavorites">
+			<key src="far_id" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="fromUserId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="far_initial" srctype="varchar(8)" dst="toUserId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="far_sort" dst="sortOrder" type="int NULL" />
+			<col src="far_type" dst="favType" type="int NULL" />
+		</table>
+		<table src="$passfotos" dst="$userPhotos">
+			<key src="passf_counter" identity="true" dst="photoId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="c_PhotoPictureFileName" dst="colorPhotoFileName" type="nvarchar(150) NULL" />
+			<col src="c_PhotoPictureContentType" dst="colorPhotoContentType" type="nvarchar(50) NULL" />
+			<col src="c_PhotoPicture" dst="colorPhotoData" type="image NULL" />
+			<col src="bw_PhotoPictureFileName" dst="bwPhotoFileName" type="nvarchar(150) NULL" />
+			<col src="bw_PhotoPictureContentType" dst="bwPhotoContentType" type="nvarchar(50) NULL" />
+			<col src="bw_PhotoPicture" dst="bwPhotoData" type="image NULL" />
+			<col src="brussels_PhotoPictureFileName" dst="brusselsPhotoFileName" type="nvarchar(150) NULL" />
+			<col src="brussels_PhotoPictureContentType" dst="brusselsPhotoContentType" type="nvarchar(50) NULL" />
+			<col src="brussels_PhotoPicture" dst="brusselsPhotoData" type="image NULL" />
+			<col src="brussels" dst="brusssels" type="varchar(5) NULL" />
+			<col src="internet" dst="internet" type="varchar(5) NULL" />
+			<col src="internet_freigabe" srctype="int NULL" dst="internetRelease" type="bit NULL" convert="bool:1,0" />
+		</table>
+		<table src="" dst="$publicationTypes">
+			<key src="" dst="typeId" type="int identity NOT NULL" />
+			<col src="" dst="typeName" type="varchar(100) NULL" />
+		</table>
+		<table src="" dst="$userPublications">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="userId" type="int NOT NULL" />
+			<col src="" dst="publicationId" type="int NOT NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="creationDate" type="datetime default getdate()" />
+		</table>
+		<table src="$publication" dst="$publications">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="pub_counter" dst="publicationId" identity="true" type="int NOT NULL" />
+			<col src="" dst="locale" type="varchar(10) NOT NULL" default="de" />
+			<col src="initial" srctype="varchar(8)" dst="" type="" convert="orel:mdb_users,userId,initial,mdb_userPublications,userId,publicationId,sortOrder,1" />
+			<col src="pub_type" srctype="varchar(40)" dst="dataId" type="int NULL" convert="rel:mdb_publicationTypes,typeName,typeId" />
+			<col src="cms_id" dst="cmsId" type="varchar(20) NULL" />
+			<col src="pub_isxn" dst="publicationISXN" type="varchar(50) NULL" />
+			<col src="pub_titel_de" dst="publicationTitle" type="varchar(500) NULL" />
+			<col src="pub_titel_en" srctype="varchar(500) NULL" dst="" type="" />
+			<col src="pub_de" srctype="varchar(2000) NULL" dst="publisherId" locale="de" type="int NULL" convert="rel:mdb_publishers,publisherName,rowId" />
+			<col src="pub_en" srctype="varchar(2000) NULL" dst="" type="" />
+			<col src="pub_date" dst="publicationDateString" type="varchar(20) NULL" />
+			<col src="pub_ref" dst="publicationReference" type="varchar(100) NULL" />
+			<col src="pub_status" dst="publicationStatus" type="int NULL" />
+			<col src="pub_link" dst="publicationLinkUrl" type="varchar(500) NULL" />
+			<col src="pub_order" dst="publicationOrder" type="int NULL" />
+			<col src="pub_internet" dst="publicationInternet" type="int NULL" />
+			<col src="lastchange" dst="lastChange" type="datetime NULL" />
+			<col src="sysusr" dst="sysusr" type="varchar(20) NULL" />
+		</table>
+		<table src="" dst="$publishers">
+			<key src="" dst="rowId" type="int IDENTITY NOT NULL" />
+			<col src="" dst="publisherId" type="int NULL" autoincrement="true" />
+			<col src="" dst="locale" type="varchar(10) NULL" />
+			<col src="" dst="publisherName" type="varchar(200) NULL" />
+			<sql>UPDATE %%dsttable%% SET publisherId = rowId</sql>
+			<sql>ALTER TABLE %%dsttable%% ALTER COLUMN publisherId int NOT NULL</sql>
+		</table>
+		<table src="$wpad" dst="$privateAddressTypes">
+			<key src="wpad_count" dst="typeId" type="int NOT NULL" />
+			<col src="pad_type" dst="bulkId" type="int NULL" />
+			<col src="wpad_status" dst="typeStatus" type="int NULL" />
+			<col src="wpad_descript" dst="typeDescription" type="varchar(400) NULL" />
+			<col src="wpad_short"  dst="typeName" type="varchar(20) NULL" />
+			<col src="wpad_order" dst="sortOrder" type="int NULL" />
+		</table>
+		<table src="$pad" dst="$userPrivateAddress">
+			<col src="id" dst="rowId" type="int NULL" />
+			<col src="data_id" dst="dataId" type="int NULL" />
+			<col src="locale" dst="locale" type="varchar(50) NULL" />
+			<key src="pad_counter" dst="addressId" identity="true" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="pad_type" dst="addressType" type="int NULL" convert="rel:mdb_privateAddressTypes,bulkId,typeId" />
+			<col src="pad_strasse" srctype="varchar(200) NULL" dst="address" type="nvarchar(200) NULL" convert="utf8" />
+			<col src="pad_ort" srctype="varchar(100) NULL" dst="city" type="nvarchar(100) NULL" convert="utf8" />
+			<col src="pad_plz" srctype="varchar(12) NULL" dst="zip" type="nvarchar(12) NULL" convert="utf8" />
+			<col src="pad_land" srctype="varchar(50) NULL" dst="country" type="nvarchar(50) NULL" convert="utf8" />
+			<col src="pad_adrinfo" srctype="varchar(400) NULL" dst="addressInfo" type="nvarchar(400) NULL" convert="utf8" />
+			<col src="pad_tel" dst="phone" type="varchar(25) NULL" />
+			<col src="pad_fax" dst="fax" type="varchar(25) NULL" />
+			<col src="pad_email" dst="email" type="varchar(200) NULL" />
+		</table>
+		<table src="" dst="$departments">
+			<key src="" dst="departmentId" type="int identity NOT NULL" />
+			<col src="" dst="departmentName" type="varchar(50)" />
+			<col src="" dst="locId" type="int NULL" />
+		</table>
+		<table src="" dst="$locationTypes">
+			<key src="" dst="typeId" type="int identity NOT NULL" />
+			<col src="" dst="locationType" type="varchar(50)" />
+		</table>
+		<table src="" dst="$usersRel">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="fromId" type="int" />
+			<col src="" dst="toId" type="int" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="startDate" type="datetime NULL" />
+			<col src="" dst="endDate" type="datetime NULL" />
+		</table>
+		<table src="$sqlservers" dst="$workflowSQLServers">
+			<key src="id_server" dst="serverId" type="int NOT NULL" />
+			<col src="hostname" dst="serverHostname" type="varchar(100) NULL" />
+			<col src="ipaddress" dst="serverIP" type="varchar(15) NULL" />
+			<col src="username" dst="serverUsername" type="varchar(256) NULL" />
+			<col src="password" dst="serverPassword" type="varchar(256) NULL" />
+			<col src="provider" dst="serverDBTable" type="varchar(100) NULL" />
+		</table>
+		<table src="$sqlservers_datastores" dst="$workflowSQLServerDatastores">
+			<key src="id_datastore" dst="datastoreId" type="int NOT NULL" />
+			<col src="dsname" dst="datastoreName" type="varchar(100) NULL" />
+			<col src="id_server" dst="serverId" type="int" />
+		</table>
+		<table src="$connections" dst="$workflowSQLServerDatabases">
+			<key src="idcount" identity="true" dst="databaseId" type="int NOT NULL" />
+			<col src="servername" srctype="varchar(100) NULL" dst="serverId" type="int NULL" convert="rel:mdb_workflowSQLServers,serverHostname,serverId" />
+			<col src="dbname" dst="serverDBName" type="varchar(100) NULL" />
+			<col src="dbtable" dst="serverDBTable" type="varchar(100) NULL" />
+			<col src="username" dst="serverUsername" type="varchar(100) NULL" />
+			<col src="password" dst="serverPassword" type="varchar(100) NULL" />
+		</table>
+		<table src="$mentoren" dst="$userMentors">
+			<key src="mcounter" identity="true" dst="rowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="mentor" srctype="varchar(8)" dst="mentorId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="m_order" dst="sortOrder" type="int NULL" />
+			<col src="m_main" srctype="int NULL" dst="main" type="bit NULL" convert="bool:1,0" />
+			<col src="" dst="startDate" type="datetime NULL" />
+			<col src="" dst="endDate" type="datetime NULL" />
+		</table>
+		<table src="$wcvs" dst="$resumeTypes">
+			<key src="cventry_counter" dst="typeId" type="int NOT NULL" />
+			<col src="cv_type" dst="bulkId" type="int NULL" />
+			<col src="cve_order" dst="sortOrder" type="int NULL" />
+			<col src="cve_status" srctype="int NULL" dst="typeStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="cve_desc_de" dst="typeNameDE" type="varchar(200) NULL" />
+			<col src="cve_desc_en" dst="typeNameEN" type="varchar(200) NULL" />
+		</table>
+		<table src="$resume" dst="$userResumes">
+			<key src="cv_counter" identity="true" dst="resumeRowId" type="int NOT NULL" />
+			<col src="initial" srctype="varchar(8)" dst="userId" type="int" convert="rel:mdb_users,initial,userId" />
+			<col src="cv_type" srctype="int NULL" dst="cvType" type="int NULL" convert="rel:mdb_resumeTypes,bulkId,typeId" />
+			<col src="cv_status" srctype="int NULL" dst="cvStatus" type="bit NULL" convert="bool:1,0" />
+			<col src="cv_fromdate" srctype="varchar(20) NULL" dst="cvFromDate" type="varchar(20) NULL" />
+			<col src="cv_todate" srctype="varchar(20) NULL" dst="cvToDate" type="varchar(20) NULL" />
+			<col src="cv_date" srctype="varchar(20) NULL" dst="cvDate" type="varchar(20) NULL" />
+			<col src="cv_topic_de" dst="cvTopicDE" type="varchar(500) NULL" />
+			<col src="cv_body_de" dst="cvBodyDE" type="text NULL" />
+			<col src="cv_order" dst="sortOrder" type="int NULL" />
+			<col src="cv_link" dst="cvLinkUrl" type="varchar(500) NULL" />
+			<col src="cv_internet" srctype="int NULL" dst="cvInternet" type="varchar(20) NULL" />
+			<col src="cv_topic_en" dst="cvTopicEN" type="varchar(500) NULL" />
+			<col src="cv_body_en" dst="cvBodyEN" type="text NULL" />
+			<col src="cv_udf" dst="cvUdf" type="varchar(400) NULL" />
+			<col src="lastchange" dst="lastChange" type="datetime" />
+			<col src="sysusr" dst="sysusr" type="varchar(20) NULL" />
+		</table>
+		<table src="" dst="$userSubDepartments">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="subDepartmentId" type="int" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="startDate" type="datetime NULL" />
+			<col src="" dst="endDate" type="datetime NULL" />
+		</table>
+		<table src="" dst="$userDepartments">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="departmentId" type="int" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="startDate" type="datetime NULL" />
+			<col src="" dst="endDate" type="datetime NULL" />
+		</table>
+		<table src="" dst="$userFunctions">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="locId" type="int NULL" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="creationDate" type="datetime default getdate()" />
+		</table>	
+		<table src="" dst="$userAddresses">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="adrId" type="int NULL" />
+			<col src="" dst="locale" type="varchar(10) default 'en'" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="comId" type="int" default="1" />
+			<col src="" dst="locId" type="int" />
+			<col src="" dst="adrDisplayName" type="nvarchar(200) NULL" />
+			<col src="" dst="adrDisplayPositions" type="nvarchar(200) NULL" />
+			<col src="" dst="adrDisplayPhone" type="nvarchar(200) NULL" />
+			<col src="" dst="adrDisplayFax" type="nvarchar(200) NULL" />
+			<col src="" dst="adrDisplayEmail" type="nvarchar(200) NULL" />
+			<col src="" dst="adrAddress" type="nvarchar(200) NULL" />
+			<col src="" dst="adrZip" type="nvarchar(200) NULL" />
+			<col src="" dst="adrCity" type="nvarchar(200) NULL" />
+			<col src="" dst="adrState" type="nvarchar(200) NULL" />
+			<col src="" dst="adrCountryId" type="int NULL" />
+			<col src="" dst="adrEmail" type="nvarchar(200) NULL" />
+			<col src="" dst="adrOfficeMobile" type="nvarchar(200) NULL" />
+			<col src="" dst="adrPrivateMobile" type="nvarchar(200) NULL" />
+			<col src="" dst="adrBuildingFloor" type="nvarchar(200) NULL" />
+			<col src="" dst="adrBuilding" type="nvarchar(200) NULL" />
+			<col src="" dst="adrRoomNumber" type="nvarchar(200) NULL" />
+			<col src="" dst="adrPhone" type="nvarchar(200) NULL" />
+			<col src="" dst="adrPhoneExt" type="nvarchar(200) NULL" />
+			<col src="" dst="adrFax" type="nvarchar(200) NULL" />
+			<col src="" dst="adrFaxExt" type="nvarchar(200) NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="creationDate" type="datetime default getdate()" />
+			<sql>UPDATE %%dsttable%% SET adrId = rowId</sql>
+			<sql>UPDATE %%dsttable%% SET sortOrder = 1 WHERE sortOrder IS NULL</sql>
+			<sql>ALTER TABLE %%dsttable%% ALTER COLUMN adrId int NOT NULL</sql>
+			<sql>UPDATE %%dsttable%% SET locId = (SELECT TOP 1 locId FROM mdb_locations WHERE mdb_locations.oldId = %%dsttable%%.locId )</sql>
+			<sql>UPDATE %%dsttable%% SET comId = (SELECT TOP 1 comId FROM mdb_companyLocations WHERE mdb_companyLocations.locId = %%dsttable%%.locId )</sql>
+			<sql>UPDATE %%dsttable%% SET adrEmail = (SELECT TOP 1 email FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrPhoneExt = (SELECT TOP 1 phoneExt FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrFaxExt = (SELECT TOP 1 faxExt FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrBuilding = (SELECT TOP 1 building FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrBuildingFloor = (SELECT TOP 1 buildingFloor FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrRoomNumber = (SELECT TOP 1 roomNumber FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrOfficeMobile = (SELECT TOP 1 oMobile FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>UPDATE %%dsttable%% SET adrPrivateMobile = (SELECT TOP 1 pMobile FROM mdb_users WHERE mdb_users.userId = %%dsttable%%.userId)</sql>
+			<sql>CREATE VIEW mdb_viewPhoneList AS SELECT a.userId, b.locId, c.city, b.comId, com.comName, up.posId, pos.posTitle, initial, title, firstName, middleName, nobleName, lastName, displayName, birthday, (phonePrefix + adrPhoneExt) as phone, adrEmail FROM mdb_users a, mdb_userPositions up, mdb_positions pos, mdb_userAddresses b LEFT JOIN mdb_companies com ON b.comId = com.comId, mdb_locations c WHERE a.userId = b.userId AND a.locale = 'en' AND b.locale = 'en' AND c.locale = 'en' AND b.locId = c.locId AND pos.posId = up.posId AND pos.locale = 'en' AND (b.comId = up.comId OR up.comId IS NULL) AND a.userId = up.userId;</sql>
+		</table>
+		<table src="" dst="$groupTypes">
+			<key src="" dst="typeId" type="int identity NOT NULL" />
+			<col src="" dst="groupType" type="varchar(20)" />
+			<col src="" dst="groupTypeName" type="varchar(100) NULL" />
+		</table>
+		<table src="$groupnames" dst="$groups">
+			<key src="gnID" identity="true" dst="groupId" type="int NOT NULL" />
+			<col src="groupnameID" dst="groupShortName" type="varchar(20) NULL" />
+			<col src="groupname" dst="groupName" type="varchar(30)" />
+			<col src="groupdescription" dst="groupDescription" type="varchar(200)" />
+			<col src="grpType" srctype="varchar(20)" dst="typeId" type="int NULL" convert="rel:mdb_groupTypes,groupType,typeId" />
+			<col src="grpKoordinator" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userGroups,userId,groupId,sortOrder,1,GroupCoordinator" />
+			<col src="grpLocation" srctype="varchar(2) NULL" dst="locId" type="int NULL" convert="rel:mdb_locations,locationCode,locId" />
+			<col src="grpEmail" dst="email" type="varchar(100) NULL" />
+			<col src="grpWiWstatus" dst="wiwStatus" type="int NULL" />
+			<col src="grpListStatus" dst="listStatus" type="int NULL" />
+		</table>
+		<table src="" dst="$userGroups">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="groupId" type="int" />
+			<col src="" dst="userId" type="int" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="sortOrder" type="int NULL" />
+			<col src="" dst="startDate" type="datetime NULL" />
+			<col src="" dst="endDate" type="datetime NULL" />
+		</table>
+		<table src="$groups" dst="" exportcount="SELECT max(sortOrder) FROM mdb_userGroups">
+			<col src="memberdb" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,memberdb,Member" />
+			<col src="resetpwd" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,resetpwd,Member" />
+			<col src="cmsfreetext" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,cmsfreetext,Member" />
+			<col src="strukturdb" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,strukturdb,Member" />
+			<col src="strukturdeldept" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,strukturdeldept,Member" />
+			<col src="jointbill" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jointbill,Member" />
+			<col src="ticketdbmod" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,ticketdbmod,Member" />
+			<col src="ticketdbsend" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,ticketdbsend,Member" />
+			<col src="itedocu" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,itedocu,Member" />
+			<col src="hhfristen" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,hhfristen,Member" />
+			<col src="billing" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,billing,Member" />
+			<col src="kernteam" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,kernteam,Member" />
+			<col src="testteam" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,testteam,Member" />
+			<col src="finalizedept" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,finalizedept,Member" />
+			<col src="ite" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,ite,Member" />
+			<col src="elitetraining" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,elitetraining,Member" />
+			<col src="spesek" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,spesek,Member" />
+			<col src="jurarbr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurarbr,Member" />
+			<col src="jurbankr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurbankr,Member" />
+			<col src="jurgesr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurgesr,Member" />
+			<col src="jurimmor" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurimmor,Member" />
+			<col src="jurit" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurit,Member" />
+			<col src="jurartr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurartr,Member" />
+			<col src="jurgewerblr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurgewerblr,Member" />
+			<col src="jurutil" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurutil,Member" />
+			<col src="jursteuerr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jursteuerr,Member" />
+			<col src="jurdisres" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurdisres,Member" />
+			<col src="jurversr" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurversr,Member" />
+			<col src="juraknv" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,juraknv,Member" />
+			<col src="jurakbv" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurakbv,Member" />
+			<col src="jurmps" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurmps,Member" />
+			<col src="jurpa" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,jurpa,Member" />
+			<col src="agit" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,agit,Member" />
+			<col src="agm" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,agm,Member" />
+			<col src="aghuman" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,aghuman,Member" />
+			<col src="agqm" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,agqm,Member" />
+			<col src="eisdc" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,eisdc,Member" />
+			<col src="asfbg" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,asfbg,Member" />
+			<col src="zmmg" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,zmmg,Member" />
+			<col src="zmfibu" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,zmfibu,Member" />
+			<col src="zmit" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,zmit,Member" />
+			<col src="zmmark" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,zmmark,Member" />
+			<col src="groupsdb" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,groupsdb,Member" />
+			<col src="elitelive" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,elitelive,Member" />
+			<col src="wvtrainer" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,wvtrainer,Member" />
+			<col src="gremienadmin" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,gremienadmin,Member" />
+			<col src="aktenablage" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,aktenablage,Member" />
+			<col src="imarketing" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,imarketing,Member" />
+			<col src="xite" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,xite,Member" />
+			<col src="Fibu" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,Fibu,Member" />
+			<col src="cmsport" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,cmsport,Member" />
+			<col src="internetLL" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,internetLL,Member" />
+			<col src="intracmshp" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,intracmshp,Member" />
+			<col src="sekst" srctype="varchar(8) NULL" dst="" type="" convert="trans:mdb_users,userId,initial,mdb_groups,groupId,groupShortName,mdb_userGroups,userId,groupId,sortOrder,sekst,Member" />
+		</table>
+		<table src="wf_deptstruc" dst="$subDepartments">
+			<key src="counterID" identity="true" dst="subDepartmentId" type="int NOT NULL" />
+			<col src="tkid" srctype="varchar(8)" dst="" type="" convert="fmrel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,Timekeeper" />
+			<col src="partnerid" srctype="varchar(8)" dst="" type="" convert="fmrel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,Partner" />
+			<col src="deptname" srctype="varchar(50)" dst="departmentId" type="int" convert="rel:mdb_departments,departmentName,departmentId" />
+			<col src="secid1" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,1,Secretary" />
+			<col src="secid2" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,2,Secretary" />
+			<col src="secid3" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,3,Secretary" />
+			<col src="secid4" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,4,Secretary" />
+			<col src="secid5" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,5,Secretary" />
+			<col src="secid6" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,6,Secretary" />
+			<col src="secid7" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,7,Secretary" />
+			<col src="secid8" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,8,Secretary" />
+			<col src="secid9" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,9,Secretary" />
+			<col src="secid10" srctype="varchar(8)" dst="" type="" convert="forel:mdb_users,userId,initial,mdb_userSubDepartments,userId,subDepartmentId,sortOrder,10,Secretary" />			
+			<col src="modlast" dst="lastChange" type="datetime NULL" />
+			<col src="modaws" dst="lastMod" type="datetime NULL" />
+			<col src="" dst="locId" type="int NULL" />
+		</table>
+		<table src="$anwalt" dst="$usersInternetImport">
+			<key src="row_Id" dst="lawerId" type="int NOT NULL" />
+			<col src="" dst="userId" type="int NULL" convert="merge:mdb_users,userId,email,email" />
+			<col src="a_titel" dst="title" type="nvarchar(30) NULL" />
+			<col src="vorname" dst="firstname" type="nvarchar(40) NULL" />
+			<col src="nachname" dst="lastname" type="nvarchar(60) NULL" />
+			<col src="anschrift" dst="address" type="nvarchar(50) NULL" />
+			<col src="plz" dst="zip" type="nvarchar(10) NULL" />
+			<col src="ort" dst="city" type="nvarchar(40) NULL" />
+			<col src="land" dst="country" type="nvarchar(20) NULL" />
+			<col src="telefon" dst="phone" type="nvarchar(25) NULL" />
+			<col src="mobil" dst="mobile" type="nvarchar(25) NULL" />
+			<col src="telefax" dst="fax" type="nvarchar(25) NULL" />
+			<col src="email" dst="email" type="nvarchar(40)" />
+			<col src="foto" dst="photo" type="nvarchar(20) NULL" />
+			<col src="status" dst="status" type="nvarchar(30) NULL" />
+			<col src="geb_jahr" dst="birthdayYear" type="nvarchar(4) NULL" />
+			<col src="geb_mon" dst="birthdayMonth" type="char(2) NULL" />
+			<col src="geb_tag" dst="birthdayDay" type="char(2) NULL" />
+			<col src="ausbildung" dst="education" type="ntext NULL" />
+			<col src="ausbildung_en" dst="educationEN" type="ntext NULL" />
+			<col src="zulassung" dst="jurisdiction" type="ntext NULL" />
+			<col src="zulassung_en" dst="jurisdictionEN" type="ntext NULL" />
+			<col src="fachbereich" dst="specialization" type="ntext NULL" />
+			<col src="fachbereich_en" dst="specializationEN" type="ntext NULL" />
+			<col src="taetigkeit" dst="practice" type="ntext NULL" />
+			<col src="taetigkeit_en" dst="practiceEN" type="ntext NULL" />
+			<col src="publikation" dst="publications" type="ntext NULL" />
+			<col src="publikation_en" dst="publicationsEN" type="ntext NULL" />
+			<col src="vortraege" dst="lectures" type="ntext NULL" />
+			<col src="vortraege_en" dst="lecturesEN" type="ntext NULL" />
+			<col src="sprachen" dst="languages" type="ntext NULL" />
+			<col src="sprachen_en" dst="languagesEN" type="ntext NULL" />
+			<col src="aktiv" srctype="char(1) NULL" dst="active" type="bit NULL" convert="bool:J,N" />
+			<col src="nameEnglisch" dst="nameEN" type="nvarchar(100) NULL" />
+		</table>
+		<table src="$public" dst="$internetPublications">
+			<key src="row_Id" identity="true" dst="pubId" type="int NOT NULL" />
+			<col src="anwalt" dst="userId" type="int NULL" convert="rel:mdb_usersInternetImport,lawerId,userId" />
+			<col src="anzeigen" srctype="char(1) NULL" dst="pubShow" type="bit default 1" convert="bool:J,N" />
+			<col src="author" dst="authorName" type="nvarchar(250) NULL" />
+			<col src="library" dst="pubDescription" type="ntext NULL" />
+			<col src="ersch_mon" dst="pubMonth" type="int NULL" />
+			<col src="ersch_jahr" dst="pubYear" type="int NULL" />
+			<col src="fachbereich" dst="pubAreaCode" type="nvarchar(30) NULL" />
+		</table>
+		<table src="" dst="$functions">
+			<key src="" dst="rowId" type="int identity NOT NULL" />
+			<col src="" dst="fncId" type="int NULL" />
+			<col src="" dst="locale" type="varchar(10) default 'en'" />
+			<col src="" dst="fncTitle" type="nvarchar(100)" />
+			<col src="" dst="fncDescription" type="ntext NULL" />
+			<sql>UPDATE %%dsttable%% SET fncId = rowId</sql>
+			<sql>ALTER TABLE %%dsttable%% ALTER COLUMN fncId int NOT NULL</sql>
+		</table>
+		<table dst="$userLectures" src="">
+			<key dst="userId" type="int NOT NULL" src="" srctype="" />
+			<key dst="lecId" type="int NOT NULL" src="" srctype="" />
+			<col dst="sortOrder" type="int NULL" src="" srctype="" />
+			<sql>INSERT INTO %%dsttable%% SELECT b.userId, a.ses_counter, a.ses_order FROM cms_sessions a, mdb_users b WHERE b.initial = a.initial</sql>
+		</table>
+		<table dst="$lectures" src="">
+			<key dst="rowId" type="int IDENTITY NOT NULL" src="" srctype="" />
+			<col dst="lecId" type="int NOT NULL" src="lecId" srctype="" />
+			<col dst="locale" type="varchar(10) NOT NULL DEFAULT 'en'" src="" srctype="" />
+			<col dst="lecTitle" type="nvarchar(500) NULL" src="" srctype="" />
+			<col dst="lecDescription" type="ntext NULL" src="" srctype="" />
+			<col dst="lecLinkUrl" type="varchar(200) NULL" src="" srctype="" />
+			<col dst="lecDate" type="varchar(20) NULL" src="" srctype="" />
+			<col dst="lecStatus" type="bit NULL" src="" srctype="" />
+			<col dst="lecType" type="int NULL" src="" srctype="" />
+			<col dst="creationDate" type="datetime default getdate()" src="" />
+			<sql>INSERT INTO %%dsttable%% SELECT ses_counter, 'de', ses_titel_de, ses_body_de, ses_link, ses_date, ses_status, ses_type, getdate() FROM cms_sessions</sql>
+			<sql>INSERT INTO %%dsttable%% SELECT ses_counter, 'en', ses_titel_en, ses_body_en, ses_link, ses_date, ses_status, ses_type, getdate() FROM cms_sessions</sql>
+		</table>
+	</tables>
+</dbConvert>
