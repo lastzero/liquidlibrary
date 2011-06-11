@@ -18,6 +18,10 @@ $.Class.extend('Liquid.Ajax',
 
     debugMode: false, // Output debug messages
     developmentMode: false, // Verbose logs and no security checks
+    useFixtures: false, // Use fixtures to simulate AJAX requests
+
+    defaultSuccessEvent: '', // OpenAjax event string, in case no success callback is defined
+    defaultErrorEvent: '', // OpenAjax event string, in case no error callback is defined
 
     config: {}, // Optional config object (sent by the server)
     secret: null, // CSRF Token
@@ -42,7 +46,7 @@ $.Class.extend('Liquid.Ajax',
         }
 
         if(options.init) {
-            this.onInitSuccess(init);
+            this.onInitSuccess(options.init);
         } else {
             this.sendInitRequest();
         }
@@ -95,7 +99,8 @@ $.Class.extend('Liquid.Ajax',
             url: url,
             success: this.callback('onInitSuccess'),
             error: this.callback('onInitError'),
-            dataType: 'json'
+            dataType: 'json',
+            fixture: this.useFixtures ? steal.root.path + '/fixtures/rpc/init.json' : false
         });
         
         this.triggerEvent('sendInitRequest', [data, url]);
@@ -261,7 +266,7 @@ $.Class.extend('Liquid.Ajax',
     },
 
     deleteAjaxCallback: function (id) {
-        if(id) {
+        if(id && !isNaN(id)) {
             delete this._ajaxCallbacks[id];
             this.triggerEvent('deleteAjaxCallback', arguments);
         }
@@ -291,7 +296,42 @@ $.Class.extend('Liquid.Ajax',
     },
 
     getAjaxCallbackId: function (rpcRequest) {
-        return this.addAjaxCallback(rpcRequest.success) + ':' + this.addAjaxCallback(rpcRequest.error) + ':' + this.connectionNumber;
+        var successCallbackId = rpcRequest.success ? this.addAjaxCallback(rpcRequest.success) : this.defaultSuccessEvent;
+        var errorCallbackId = rpcRequest.error ? this.addAjaxCallback(rpcRequest.error) : this.defaultErrorEvent;
+
+        return successCallbackId + ':' + errorCallbackId + ':' + this.connectionNumber;
+    },
+    
+    fixture: function(settings, callbackType) {
+        var request = jQuery.evalJSON(settings.data);
+        
+        var params = jQuery.toJSON(request.params).replace(/[^a-zA-Z0-9]/g, '');
+        
+        if(params && params != 'null') {
+            params = '/' + params;
+        } else {
+            params = '';
+        }       
+        
+        var urlParts = settings.url.split('/');
+        
+        var service = urlParts[2].split('?');
+        
+        var filename = steal.root.path + '/fixtures/rpc/' + service[0] + '/' + request.method + params + '.json';
+        
+        var ids = request.id.split(':');
+        
+        $.getJSON(filename, {}, function (fixtureData) {
+            if(!fixtureData) return;
+            
+            if(!fixtureData.error && settings.success && ids[0]) {
+                settings.success({id: request.id, result: fixtureData.result, error: null});
+            }
+
+            if(fixtureData.error && settings.error && ids[1]) {
+                settings.error({id: request.id, error: fixtureData.error, result: null});
+            }
+        });
     },
 
     rpc: function(request) { // Sends a JSON-RPC (Remote procedure call) request to the server
@@ -305,6 +345,7 @@ $.Class.extend('Liquid.Ajax',
         
         var data;
         var url;
+        var aggregate = false;
 
         this.log('Sending RPC request: ', request);
 
@@ -319,6 +360,7 @@ $.Class.extend('Liquid.Ajax',
                 });
             }
             url = this.rpcUrl + '/aggregate';
+            aggregate = true;
         } else {
             data = {
                 method: request['method'],
@@ -336,7 +378,8 @@ $.Class.extend('Liquid.Ajax',
             success: this.callback('onAjaxSuccess'),
             error: this.callback('onAjaxError', request),
             dataType: 'json',
-            processData: false
+            processData: false,
+            fixture: (this.useFixtures && !aggregate) ? this.fixture : false
         };
 
         var xhr = $.ajax(ajaxRequest);

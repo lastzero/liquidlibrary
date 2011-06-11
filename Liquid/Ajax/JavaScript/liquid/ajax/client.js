@@ -42,7 +42,7 @@
             }
             
             if(options.init) {
-                this.onInitSuccess(init);
+                this.onInitSuccess(options.init);
             } else {
                 this.sendInitRequest();
             }
