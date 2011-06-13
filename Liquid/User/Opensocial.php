@@ -8,12 +8,12 @@
  *
  * @category   Liquid
  * @package    Liquid_User
- * @copyright  Copyright (c) 2010 Liquid Bytes Technologies (http://www.liquidbytes.net/)
+ * @copyright  Copyright (c) 2011 Liquid Bytes Technologies (http://www.liquidbytes.net/)
  * @license    http://www.liquidbytes.net/bsd.html New BSD License
  */
  
-class Liquid_User_Facebook implements Liquid_User {
-    const STORAGE_NAMESPACE = 'facebook';
+class Liquid_User_Opensocial implements Liquid_User {
+    const STORAGE_NAMESPACE = 'opensocial';
     
     protected $appId;
     protected $secret;
@@ -32,31 +32,11 @@ class Liquid_User_Facebook implements Liquid_User {
     
     protected function getStorage () {
         if(!$this->storage) {
-            throw new Liquid_User_Facebook_Exception('No storage adapter found');
+            throw new Liquid_User_Opensocial_Exception('No storage adapter found');
         }
         
         return $this->storage;
-    }
-    
-    protected function loadProfile () {
-        $hash = md5('https://graph.facebook.com/me?access_token=' . $this->auth['access_token']);
-        
-        if(isset($_SESSION[$hash]) && $_SESSION[$hash] != '') {
-            $this->profile = Zend_Json::decode($_SESSION[$hash]);
-            return;
-        }
-        
-        $json = file_get_contents('https://graph.facebook.com/me?access_token=' . $this->auth['access_token']);
-        
-        $result = Zend_Json::decode($json);
-        
-        if($result && is_array($result) && count($result) > 0 && isset($result['id'])) {       
-            $this->profile = $result;
-            $_SESSION[$hash] = $json;
-        } else {
-            throw new Liquid_User_Facebook_Exception('Could not load details');
-        }           
-    }
+    }    
     
     public function renameAlias ($oldAlias, $newAlias) {
         $userId = $this->getUserId();
@@ -79,10 +59,10 @@ class Liquid_User_Facebook implements Liquid_User {
             $entry = $this->getStorage()->findLast(self::STORAGE_NAMESPACE, $userId);            
             
             $result = $entry->getData();
+
+            $result['new'] = false;
         } catch (Liquid_Storage_Exception $e) {                        
-            $this->loadProfile();   
-            
-            $defaultAlias = 'fb' . $userId;
+            $defaultAlias = 'guest';
             
             $entry = new Liquid_Storage_Entry(array(
                 'namespace' => self::STORAGE_NAMESPACE,
@@ -90,7 +70,7 @@ class Liquid_User_Facebook implements Liquid_User {
                 'data' => array(
                     'created' => time(), 
                     'aliases' => array($defaultAlias), 
-                    'profile' => $this->profile
+                    'profile' => $this->auth['profile']['entry']
                  )
             ));
             
@@ -99,49 +79,59 @@ class Liquid_User_Facebook implements Liquid_User {
             $entry = $this->getStorage()->findLast(self::STORAGE_NAMESPACE, $userId);
 
             $result = $entry->getData();
+
+            $result['new'] = true;
         }
                 
         return $result;
     }
     
-    public static function getProfile ($facebookId) {
-        $json = file_get_contents('https://graph.facebook.com/' . $facebookId);
+    public function getProfile ($userId = '@viewer') {
+        $this->checkAuth();
         
-        return Zend_Json::decode($json);
+        $json = file_get_contents('https://www.google.com/friendconnect/api/people/'
+            .$userId
+            .'/@self?fcauth='
+            .$this->auth['access_token']
+        );
+        
+        $profile = Zend_Json::decode($json);
+        
+        return $profile['entry'];
     }
     
     public function getUserId () {
         $this->checkAuth();
-        
-        $result = $this->auth['uid'];
+
+        $result = $this->auth['profile']['entry']['id'];
         
         return $result;
     }
     
     public function checkAuth () {
-        if(!isset($_COOKIE['fbs_' . $this->appId])) {
-            throw new Liquid_User_Facebook_Exception('Cookie not found');
+        if(!isset($_COOKIE['fcauth' . $this->appId])) {
+            unset($_SESSION['opensocial_authenticated']);
+            $this->auth = null;
+            throw new Liquid_User_Opensocial_Exception('Cookie not found');
         }
         
-        $args = array();
+        $url = 'https://www.google.com/friendconnect/api/people/@viewer/@self?fcauth=' . $_COOKIE['fcauth' . $this->appId];
+        $hash = 'os_' . md5($url);
+        
+        if(!isset($_SESSION[$hash])) {
+            $json = file_get_contents($url);
 
-        parse_str(trim($_COOKIE['fbs_' . $this->appId], '\\"'), $args);
-
-        ksort($args);
-
-        $payload = '';
-
-        foreach ($args as $key => $value) {
-            if ($key != 'sig') {
-                $payload .= $key . '=' . $value;
+            try {
+                $profile = Zend_Json::decode($json);
+            } catch (Exception $e) {
+                throw new Liquid_User_Opensocial_Exception('Could not get profile');
             }
-        }
-
-        if (md5($payload . $this->secret) != $args['sig']) {
-            $this->auth = null;
-            throw new Liquid_User_Facebook_Exception('Cookie not valid');
+            
+            $this->auth = array('access_token' => $_COOKIE['fcauth' . $this->appId], 'profile' => $profile);
+            
+            $_SESSION[$hash] = serialize($this->auth);
         } else {
-            $this->auth = $args;          
-        }
+            $this->auth = unserialize($_SESSION[$hash]);
+        }        
     }
 }

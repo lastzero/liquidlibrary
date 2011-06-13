@@ -25,7 +25,7 @@ class Liquid_Service_Wiki {
     protected $user;
     protected $memcache;
     
-    public function __construct ($wikiBaseUrl, $htdocsPath, Liquid_Storage_Adapter_Abstract $storage, $namespace = 'wiki', $writable = true, $owner = true, Liquid_User_Facebook $user = null) {
+    public function __construct ($wikiBaseUrl, $htdocsPath, Liquid_Storage_Adapter_Abstract $storage, $namespace = 'wiki', $writable = true, $owner = true, Liquid_User $user = null) {
         $this->storage = $storage;
         $this->wiki = new Liquid_Wiki($wikiBaseUrl, $htdocsPath . 'img/latex/');      
         $this->htdocsPath = $htdocsPath;
@@ -98,7 +98,7 @@ class Liquid_Service_Wiki {
                 $authors = array();
                 
                 foreach($meta['authors'] as $profile) {
-                    $authors[] = $profile['name'];
+                    $authors[] = $profile['displayName'];
                 }
                 
                 $author = implode(', ', $authors);
@@ -159,7 +159,7 @@ class Liquid_Service_Wiki {
                 $authors = array();
                 
                 foreach($meta['authors'] as $profile) {
-                    $authors[] = $profile['name'];
+                    $authors[] = $profile['displayName'];
                 }
                 
                 $author = implode(', ', $authors);
@@ -370,10 +370,11 @@ class Liquid_Service_Wiki {
         foreach($authors as $key => $author) {
             if(is_string($author) && trim($author) != '') {       
                 $author = preg_replace('/[^a-zA-Z0-9_\.-]/', '', trim($author));
-                $data = Zend_Json::decode(file_get_contents('https://graph.facebook.com/' . $author));
                 
+                $data = $this->user->getProfile($author);                
+
                 if(isset($data['id'])) {
-                    $clean['facebook://' . $data['id']] = $data;
+                    $clean['opensocial://' . $data['id']] = $data;
                 }
             }
         }
@@ -392,8 +393,8 @@ class Liquid_Service_Wiki {
             throw new Liquid_Service_Wiki_Exception ('There are no authors');
         }
         
-        if(isset($meta['authors']['facebook://' . $author])) {
-            unset($meta['authors']['facebook://' . $author]);
+        if(isset($meta['authors']['opensocial://' . $author])) {
+            unset($meta['authors']['opensocial://' . $author]);
         } else {
             throw new Liquid_Service_Wiki_Exception ('Author does not exist');
         }
