@@ -395,6 +395,8 @@ class Liquid_Service_Wiki {
         
         if(isset($meta['authors']['opensocial://' . $author])) {
             unset($meta['authors']['opensocial://' . $author]);
+        } elseif(isset($meta['authors']['facebook://' . $author])) {
+            unset($meta['authors']['facebook://' . $author]);
         } else {
             throw new Liquid_Service_Wiki_Exception ('Author does not exist');
         }
