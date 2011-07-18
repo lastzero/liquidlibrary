@@ -11,7 +11,7 @@
  * @license    http://www.liquidbytes.net/bsd.html New BSD License
  */
  
-steal.plugins('orbited','orbited/stomp');
+steal('orbited','orbited/stomp').then(function () {
 
 Liquid.Ajax.extend('Liquid.Ajax.Orbited',
 { /* Prototype */
@@ -208,5 +208,5 @@ Liquid.Ajax.extend('Liquid.Ajax.Orbited',
         
         this.triggerEvent('onMessage', arguments);      
     }        
-}
-);
+});
+});

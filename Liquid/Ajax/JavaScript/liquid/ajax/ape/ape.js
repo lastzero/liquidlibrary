@@ -11,7 +11,7 @@
  * @license    http://www.liquidbytes.net/bsd.html New BSD License
  */
  
-steal.plugins('ape','liquid/ajax');
+steal('ape', 'liquid/ajax').then(function () {
 
 Liquid.Ajax.extend('Liquid.Ajax.Ape', 
 { /* Prototype */
@@ -237,5 +237,5 @@ Liquid.Ajax.extend('Liquid.Ajax.Ape',
     onCmd: function () {
         this.triggerEvent('onCmd', arguments);
     }
-}
-);
+});
+});
