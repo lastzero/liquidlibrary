@@ -8,7 +8,7 @@
  *
  * @category   Liquid
  * @package    Liquid_Form
- * @copyright  Copyright (c) 2010 Liquid Bytes Technologies (http://www.liquidbytes.net/)
+ * @copyright  Copyright (c) 2010-2011 Liquid Bytes Technologies (http://www.liquidbytes.net/)
  * @license    http://www.liquidbytes.net/bsd.html New BSD License
  */
 
@@ -137,7 +137,7 @@ class Liquid_Form {
         if($this->isCheckbox($key) && !array_key_exists($key, $values)) {
             $type = $this->getDefinition($key, 'type');
             switch($type) {
-                case 'array':
+                case 'list':
                     $values[$key] = array();
                     break;
                 case 'bool':
@@ -204,7 +204,7 @@ class Liquid_Form {
                 $this->setCheckboxValueInArray($key, $values);
 
                 if(!array_key_exists($key, $values)) {
-                    throw new Liquid_Form_Exception ('Array provided to setDefinedWritableValues() was not complete: ' . $key);
+                    throw new Liquid_Form_Exception ('Array provided to setWritableValuesOnPage() was not complete: ' . $key);
                 }
 
                 $this->$key = $values[$key];
@@ -472,7 +472,7 @@ class Liquid_Form {
                         $this->addError($key, '%1$s must be a scalar value');
                     }
                     break;
-                case 'array':
+                case 'list':
                     if(!is_array($value)) {
                         $this->addError($key, '%1$s must be a list');
                     }
@@ -552,7 +552,7 @@ class Liquid_Form {
         return $this->_validate('validateField');
     }
 
-    function getErrors () {
+    public function getErrors () {
         if(!$this->_validationDone) {
             throw new Liquid_Form_Exception('You must run validate() before calling getErrors()');
         }
@@ -560,7 +560,7 @@ class Liquid_Form {
         return $this->_errors;
     }
 
-    function getErrorsByPage () {
+    public function getErrorsByPage () {
         $result = array();
         $errors = $this->getErrors();
 
@@ -575,7 +575,7 @@ class Liquid_Form {
         return $result;
     }
 
-    function clearErrors () {
+    public function clearErrors () {
         $this->_validationDone = false;
 
         if(count($this->_errors) != 0) {

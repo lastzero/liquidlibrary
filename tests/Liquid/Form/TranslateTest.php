@@ -43,7 +43,7 @@ class LiquidFormTranslateTest extends PHPUnit_Framework_TestCase {
                  ),
                  'cars' => array(
                     'caption' => 'Autos',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'bmw' => 'BMW',
                         'hond' => 'Honda',
@@ -54,7 +54,7 @@ class LiquidFormTranslateTest extends PHPUnit_Framework_TestCase {
                  ),
                  'computers' => array(
                     'caption' => 'Computer',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'len' => 'Lenovo',
                         'hp' => 'HP',
@@ -63,7 +63,7 @@ class LiquidFormTranslateTest extends PHPUnit_Framework_TestCase {
                  ),
                  'sports' => array(
                     'caption' => 'Sport',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'soccer' => 'Fussball',
                         'chess' => 'Schach',

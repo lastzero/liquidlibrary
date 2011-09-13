@@ -221,7 +221,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                  ),
                  'cars' => array(
                     'caption' => 'Autos',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'bmw' => 'BMW',
                         'hond' => 'Honda',
@@ -232,7 +232,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                  ),
                  'computers' => array(
                     'caption' => 'Computer',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'len' => 'Lenovo',
                         'hp' => 'HP',
@@ -241,7 +241,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                  ),
                  'sports' => array(
                     'caption' => 'Sport',
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'soccer' => 'Fussball',
                         'chess' => 'Schach',
@@ -304,7 +304,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     'type' => 'EmailAddress'
                  ),
                  'cars' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'bmw' => 'BMW',
                         'hond' => 'Honda',
@@ -314,7 +314,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     'max' => 2
                  ),
                  'computers' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'len' => 'Lenovo',
                         'hp' => 'HP',
@@ -322,7 +322,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     )
                  ),
                  'nothing' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'checkbox' => true,
                     'options' => array(
                         'len' => 'Lenovo',
@@ -413,7 +413,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     'type' => 'EmailAddress'
                  ),
                  'cars' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'options' => array(
                         'bmw' => 'BMW',
                         'hond' => 'Honda',
@@ -423,7 +423,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     'max' => 2
                  ),
                  'computers' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'checkbox' => true,
                     'options' => array(
                         'len' => 'Lenovo',
@@ -432,7 +432,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     )
                  ),
                  'more_computers' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'checkbox' => true,
                     'options' => array(
                         0 => 'Lenovo',
@@ -442,7 +442,7 @@ class LiquidFormTest extends PHPUnit_Framework_TestCase {
                     'min' => 2
                  ),
                  'nothing' => array(
-                    'type' => 'array',
+                    'type' => 'list',
                     'checkbox' => true,
                     'options' => array(
                         'len' => 'Lenovo',
