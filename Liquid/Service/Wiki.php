@@ -98,7 +98,7 @@ class Liquid_Service_Wiki {
                 $authors = array();
                 
                 foreach($meta['authors'] as $profile) {
-                    $authors[] = $profile['displayName'];
+                    $authors[] = $profile['name'];
                 }
                 
                 $author = implode(', ', $authors);
@@ -159,7 +159,7 @@ class Liquid_Service_Wiki {
                 $authors = array();
                 
                 foreach($meta['authors'] as $profile) {
-                    $authors[] = $profile['displayName'];
+                    $authors[] = $profile['name'];
                 }
                 
                 $author = implode(', ', $authors);
@@ -374,7 +374,7 @@ class Liquid_Service_Wiki {
                 $data = $this->user->getProfile($author);                
 
                 if(isset($data['id'])) {
-                    $clean['opensocial://' . $data['id']] = $data;
+                    $clean['local://' . $data['id']] = $data;
                 }
             }
         }
@@ -393,10 +393,12 @@ class Liquid_Service_Wiki {
             throw new Liquid_Service_Wiki_Exception ('There are no authors');
         }
         
-        if(isset($meta['authors']['opensocial://' . $author])) {
-            unset($meta['authors']['opensocial://' . $author]);
+        if(isset($meta['authors']['local://' . $author])) {
+            unset($meta['authors']['local://' . $author]);
         } elseif(isset($meta['authors']['facebook://' . $author])) {
             unset($meta['authors']['facebook://' . $author]);
+        } elseif(isset($meta['authors']['opensocial://' . $author])) {
+            unset($meta['authors']['opensocial://' . $author]);
         } else {
             throw new Liquid_Service_Wiki_Exception ('Author does not exist');
         }
