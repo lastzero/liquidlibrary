@@ -56,15 +56,7 @@ class Liquid_Ajax_Controller extends Zend_Controller_Action {
     private $loadBalancingServers = array();
     
     private $aggregationLimit = 10;
-
-    private function getSecret () {
-        if(!isset($_SESSION['ajaxSecret']) || empty($_SESSION['ajaxSecret'])) {
-            $_SESSION['ajaxSecret'] = md5(mt_rand(0, 32) . time());
-        }
-        
-        return $_SESSION['ajaxSecret'];
-    }
-    
+   
     private function getNextConnectionNumber () {
         if(!isset($_SESSION['ajaxConnectionNumber']) || empty($_SESSION['ajaxConnectionNumber'])) {
             $_SESSION['ajaxConnectionNumber'] = 1;
@@ -73,6 +65,14 @@ class Liquid_Ajax_Controller extends Zend_Controller_Action {
         }
         
         return $_SESSION['ajaxConnectionNumber'];
+    }
+    
+    protected function getSecret () {
+        if(!isset($_SESSION['ajaxSecret']) || empty($_SESSION['ajaxSecret'])) {
+            $_SESSION['ajaxSecret'] = md5(mt_rand(0, 32) . time());
+        }
+        
+        return $_SESSION['ajaxSecret'];
     }
     
     protected function setClientConfig(Array $config) {
