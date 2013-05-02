@@ -6,6 +6,33 @@
  * It is available through the world-wide-web at this URL:
  * http://www.liquidbytes.net/bsd.html
  *
+ * =============================| Description of form definition parameters |===========================================
+ * caption              Field title (used for form rendering and in validation messages)
+ * type                 Data type: int, numeric, scalar, list, bool, string, email, date, switch and
+ *                      all Zend_Validate validators
+ * type_params          Optional parameters for Zend_Validate data types
+ * options              Array of possible values for the field (for select lists or radio button groups)
+ * min                  Minimum value for numbers/dates, length for strings or number of elements for lists
+ * max                  Maximum value for numbers/dates, length for strings or number of elements for lists
+ * required             Field cannot be empty
+ * readonly             User is not allowed to change the field
+ * hidden               User can not see the field
+ * default              Default value
+ * checkbox             A checkbox-like form input element is used (the form class will assign false for
+ *                      boolean fields or array() for lists, if the value is not passed to setDefinedValues()
+ *                      or setDefinedWritableValues()). This is a work around, because browsers do not submit
+ *                      any data for unchecked checkboxes or multi-select fields without a selected element.
+ * regex                Regular expression to match against
+ * matches              Field value must match another form field (e.g. for password or email validation).
+ *                      Property can be prefixed with "!" to state that the fields must be different.
+ * depends              Field is required, if the given form field is not empty
+ * depends_value        Field is required, if the field defined in "depends" has this value
+ * depends_value_empty  Field is required, if the field defined in "depends" is empty
+ * depends_first_option Field is required, if the field defined in "depends" has the first value (see "options")
+ * depends_last_option  Field is required, if the field defined in "depends" has the last value (see "options")
+ * page                 Page number for multi-page forms
+ * =====================================================================================================================
+ *
  * @category   Liquid
  * @package    Liquid_Form
  * @copyright  Copyright (c) 2010-2011 Liquid Bytes Technologies (http://www.liquidbytes.net/)
@@ -118,8 +145,9 @@ class Liquid_Form {
         $result = array();
 
         foreach($this->_definition as $key => $def) {
-            $result[$key] = $def;
+            $result[$key]          = $def;
             $result[$key]['value'] = $this->$key;
+            $result[$key]['uid']   = 'id' . uniqid();
         }
 
         return $result;
@@ -376,8 +404,15 @@ class Liquid_Form {
 
     protected function validateMatches ($key, $def, $value) {
         if(isset($def['matches'])) {
-            if($value != $this->{$def['matches']}) {
-                $this->addError($key, '%1$s is not the same as %2$s', $this->getFieldCaption($def['matches']));
+            if($def['matches'][0] == '!') {
+                $fieldName = substr($def['matches'], 1);
+                if($value == $this->$fieldName) {
+                    $this->addError($key, '%1$s the same as %2$s', $this->getFieldCaption($fieldName));
+                }
+            } else {
+                if($value != $this->{$def['matches']}) {
+                    $this->addError($key, '%1$s is not the same as %2$s', $this->getFieldCaption($def['matches']));
+                }
             }
         }
     }
